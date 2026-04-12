@@ -264,7 +264,7 @@ function selectPill(el, type) {
   const group = type === 'cat' ? 'cat-pills' : 'met-pills';
   document.querySelectorAll('#' + group + ' .pill').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
-  const val = el.textContent.replace(/^[^\w]+/, '').trim();
+  const val = el.textContent.replace(/^[\p{Emoji}\s]+/u, '').trim();
   if (type === 'cat') selectedCat = val;
   else selectedMet = val;
 }
