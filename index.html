@@ -141,7 +141,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
     </div>
     <div class="form-field">
       <label>Monto ($)</label>
-      <input type="number" id="reg-monto" placeholder="0.00" step="0.01" inputmode="decimal" />
+      <input type="text" id="reg-monto" placeholder="0.00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" />
     </div>
     <div class="form-field">
       <label>Categoría</label>
@@ -278,7 +278,7 @@ function selectPill(el, type) {
 
 async function registrar() {
   const fecha = document.getElementById('reg-fecha').value;
-  const monto = document.getElementById('reg-monto').value;
+  const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
   if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
     mostrarToast('Completa todos los campos');
