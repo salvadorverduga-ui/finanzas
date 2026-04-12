@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Finanzas</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; padding: 16px; }
+.header { text-align: center; padding: 20px 0 24px; }
+.header h1 { font-size: 22px; font-weight: 600; }
+.header p { color: #666; font-size: 13px; margin-top: 4px; }
+.config { background: #1a1a1a; border-radius: 12px; padding: 14px; margin-bottom: 20px; border: 1px solid #2a2a2a; }
+.config label { color: #888; font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.config input { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 13px; padding: 10px 12px; width: 100%; outline: none; }
+.save-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 8px; color: #7fd4a0; font-size: 14px; padding: 10px; margin-top: 10px; cursor: pointer; width: 100%; font-weight: 500; }
+.section { margin-bottom: 20px; }
+.section-title { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 2px; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 8px; color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
+.btn:active { background: #252525; transform: scale(0.97); }
+.btn .icon { font-size: 22px; }
+.btn .label { font-size: 11px; color: #888; font-weight: 400; }
+.btn.green { border-color: #2a5a3a; background: #111e16; }
+.btn.amber { border-color: #3a2a0a; background: #1e1608; }
+.result { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-top: 4px; display: none; }
+.result.visible { display: block; }
+.result-header { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.result-body { color: #e0e0e0; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.loading { color: #444; font-style: italic; }
+.error { color: #e24b4a; }
+.connected { color: #7fd4a0; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💰 Finanzas</h1>
+  <p id="status">Configura tu script para empezar</p>
+</div>
+
+<div class="config" id="config">
+  <label>URL de tu Google Apps Script</label>
+  <input type="url" id="url-input" placeholder="https://script.google.com/macros/s/..." />
+  <button class="save-btn" onclick="guardar()">Conectar</button>
+</div>
+
+<div id="contenido" style="display:none">
+  <div class="section">
+    <div class="section-title">General</div>
+    <div class="btn-grid">
+      <button class="btn green" onclick="q('resumen')"><span class="icon">📊</span>Resumen</button>
+      <button class="btn green" onclick="q('balance')"><span class="icon">💰</span>Balance</button>
+      <button class="btn" onclick="q('ingresos')"><span class="icon">📈</span>Ingresos</button>
+      <button class="btn" onclick="q('egresos')"><span class="icon">📉</span>Egresos</button>
+      <button class="btn" onclick="q('transporte')"><span class="icon">🚗</span>Transporte</button>
+      <button class="btn" onclick="q('hoy')"><span class="icon">📅</span>Hoy</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Por categoría</div>
+    <div class="btn-grid three">
+      <button class="btn" onclick="q('detalle comida')"><span class="icon">🍔</span><span class="label">Comida</span></button>
+      <button class="btn" onclick="q('detalle transporte')"><span class="icon">🚗</span><span class="label">Transporte</span></button>
+      <button class="btn" onclick="q('detalle ocio')"><span class="icon">🎮</span><span class="label">Ocio</span></button>
+      <button class="btn" onclick="q('detalle tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
+      <button class="btn" onclick="q('detalle tramites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
+      <button class="btn" onclick="q('detalle family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Por tarjeta</div>
+    <div class="btn-grid">
+      <button class="btn amber" onclick="q('detalle diners')"><span class="icon">💳</span>Diners</button>
+      <button class="btn amber" onclick="q('detalle visa')"><span class="icon">💳</span>Visa</button>
+      <button class="btn amber" onclick="q('detalle titanium')"><span class="icon">💳</span>Titanium</button>
+      <button class="btn amber" onclick="q('detalle deuna')"><span class="icon">📱</span>DeUna</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Otros</div>
+    <div class="btn-grid">
+      <button class="btn" onclick="q('suscripciones')"><span class="icon">🔄</span>Suscripciones</button>
+      <button class="btn" onclick="q('categorias')"><span class="icon">📊</span>Categorías</button>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-header" id="result-header">Resultado</div>
+    <div class="result-body" id="result-body"></div>
+  </div>
+</div>
+
+<script>
+let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
+if (scriptUrl) { document.getElementById('url-input').value = scriptUrl; mostrarApp(); }
+
+function guardar() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  scriptUrl = url;
+  localStorage.setItem('finanzas_script_url', url);
+  mostrarApp();
+}
+
+function mostrarApp() {
+  document.getElementById('config').style.display = 'none';
+  document.getElementById('contenido').style.display = 'block';
+  document.getElementById('status').innerHTML = '<span class="connected">Conectado</span>';
+}
+
+async function q(cmd) {
+  const result = document.getElementById('result');
+  const body = document.getElementById('result-body');
+  const header = document.getElementById('result-header');
+  result.className = 'result visible';
+  header.textContent = cmd;
+  body.innerHTML = '<span class="loading">Cargando...</span>';
+  result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    const res = await fetch(scriptUrl + '?cmd=' + encodeURIComponent(cmd));
+    const text = await res.text();
+    body.textContent = text;
+  } catch(e) {
+    body.innerHTML = '<span class="error">Error de conexión. Verifica la URL.</span>';
+  }
+}
+</script>
+</body>
+</html>
