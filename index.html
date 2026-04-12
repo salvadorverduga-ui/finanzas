@@ -11,8 +11,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .header { text-align: center; padding: 20px 0 24px; }
 .header h1 { font-size: 22px; font-weight: 600; }
 .header p { color: #666; font-size: 13px; margin-top: 4px; }
-.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-.tab { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; }
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+.tab { flex: 1; padding: 10px 4px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; }
 .tab.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
 .page { display: none; }
 .page.active { display: block; }
@@ -50,6 +50,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; }
 .toast.visible { display: block; }
+.historial-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.historial-info { flex: 1; }
+.historial-fecha { color: #666; font-size: 11px; margin-bottom: 3px; }
+.historial-desc { color: #e0e0e0; font-size: 14px; font-weight: 500; }
+.historial-meta { color: #888; font-size: 11px; margin-top: 2px; }
+.historial-monto { color: #7fd4a0; font-size: 15px; font-weight: 600; white-space: nowrap; }
+.delete-btn { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 8px; color: #e24b4a; font-size: 12px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.delete-btn:active { transform: scale(0.97); }
+.refresh-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 13px; padding: 10px; width: 100%; cursor: pointer; margin-bottom: 16px; }
+.refresh-btn:active { background: #252525; }
 </style>
 </head>
 <body>
@@ -70,6 +80,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
     <div class="tab active" onclick="switchTab('consultas')">Consultas</div>
     <div class="tab" onclick="switchTab('graficos')">Gráficos</div>
     <div class="tab" onclick="switchTab('registrar')">Registrar</div>
+    <div class="tab" onclick="switchTab('historial')">Historial</div>
   </div>
 
   <!-- CONSULTAS -->
@@ -175,6 +186,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
     </div>
     <button class="submit-btn" id="submit-btn" onclick="registrar()">Registrar gasto</button>
   </div>
+
+  <!-- HISTORIAL -->
+  <div class="page" id="page-historial">
+    <button class="refresh-btn" onclick="cargarHistorial()">↻ Actualizar historial</button>
+    <div id="historial-lista"><p style="color:#555; font-size:13px;">Cargando...</p></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -208,11 +225,12 @@ function mostrarApp() {
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['consultas','graficos','registrar'][i] === tab);
+    t.classList.toggle('active', ['consultas','graficos','registrar','historial'][i] === tab);
   });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
   if (tab === 'graficos') cargarGrafico();
+  if (tab === 'historial') cargarHistorial();
 }
 
 async function q(cmd) {
@@ -266,6 +284,46 @@ async function cargarGrafico() {
     ).join('<br>');
   } catch(e) {
     legend.innerHTML = '<span class="error">Error al cargar datos.</span>';
+  }
+}
+
+async function cargarHistorial() {
+  const lista = document.getElementById('historial-lista');
+  lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
+  try {
+    const res = await fetch(scriptUrl + '?cmd=historial', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.length === 0) {
+      lista.innerHTML = '<p style="color:#555; font-size:13px;">No hay registros.</p>';
+      return;
+    }
+    lista.innerHTML = data.map(r => `
+      <div class="historial-item" id="item-${r.fila}">
+        <div class="historial-info">
+          <div class="historial-fecha">${r.fecha}</div>
+          <div class="historial-desc">${r.descripcion}</div>
+          <div class="historial-meta">${r.categoria} · ${r.metodo}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <div class="historial-monto">$${r.monto}</div>
+          <button class="delete-btn" onclick="eliminar(${r.fila})">Eliminar</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    lista.innerHTML = '<p class="error">Error al cargar historial.</p>';
+  }
+}
+
+async function eliminar(fila) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=eliminar&fila=' + fila, { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    document.getElementById('item-' + fila).remove();
+  } catch(e) {
+    mostrarToast('Error al eliminar');
   }
 }
 
