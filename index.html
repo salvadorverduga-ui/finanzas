@@ -226,7 +226,7 @@ async function cargarGrafico() {
   const legend = document.getElementById('legend-body');
   legend.textContent = 'Cargando datos...';
   try {
-    const res = await fetch(scriptUrl + '?cmd=chart');
+    const res = await fetch(scriptUrl + '?cmd=chart', { redirect: 'follow' });
     const data = await res.json();
     const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b'];
     const labels = data.map(d => d.nombre);
