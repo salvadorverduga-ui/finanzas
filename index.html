@@ -4,12 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Finanzas</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; padding: 16px; }
 .header { text-align: center; padding: 20px 0 24px; }
 .header h1 { font-size: 22px; font-weight: 600; }
 .header p { color: #666; font-size: 13px; margin-top: 4px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.tab { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; }
+.tab.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
+.page { display: none; }
+.page.active { display: block; }
 .config { background: #1a1a1a; border-radius: 12px; padding: 14px; margin-bottom: 20px; border: 1px solid #2a2a2a; }
 .config label { color: #888; font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 .config input { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 13px; padding: 10px 12px; width: 100%; outline: none; }
@@ -31,6 +37,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .loading { color: #444; font-style: italic; }
 .error { color: #e24b4a; }
 .connected { color: #7fd4a0; font-size: 12px; }
+.chart-container { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.chart-title { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.form-field { margin-bottom: 14px; }
+.form-field label { color: #888; font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-field input { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; padding: 12px; width: 100%; outline: none; }
+.pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; padding: 8px 14px; color: #888; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pill.selected { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
+.submit-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 12px; color: #7fd4a0; font-size: 15px; font-weight: 600; padding: 16px; width: 100%; cursor: pointer; margin-top: 8px; }
+.submit-btn:active { transform: scale(0.98); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; }
+.toast.visible { display: block; }
 </style>
 </head>
 <body>
@@ -47,57 +65,121 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 </div>
 
 <div id="contenido" style="display:none">
-  <div class="section">
-    <div class="section-title">General</div>
-    <div class="btn-grid">
-      <button class="btn green" onclick="q('resumen')"><span class="icon">📊</span>Resumen</button>
-      <button class="btn green" onclick="q('balance')"><span class="icon">💰</span>Balance</button>
-      <button class="btn" onclick="q('ingresos')"><span class="icon">📈</span>Ingresos</button>
-      <button class="btn" onclick="q('egresos')"><span class="icon">📉</span>Egresos</button>
-      <button class="btn" onclick="q('transporte')"><span class="icon">🚗</span>Transporte</button>
-      <button class="btn" onclick="q('hoy')"><span class="icon">📅</span>Hoy</button>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('consultas')">Consultas</div>
+    <div class="tab" onclick="switchTab('graficos')">Gráficos</div>
+    <div class="tab" onclick="switchTab('registrar')">Registrar</div>
+  </div>
+
+  <!-- CONSULTAS -->
+  <div class="page active" id="page-consultas">
+    <div class="section">
+      <div class="section-title">General</div>
+      <div class="btn-grid">
+        <button class="btn green" onclick="q('resumen')"><span class="icon">📊</span>Resumen</button>
+        <button class="btn green" onclick="q('balance')"><span class="icon">💰</span>Balance</button>
+        <button class="btn" onclick="q('ingresos')"><span class="icon">📈</span>Ingresos</button>
+        <button class="btn" onclick="q('egresos')"><span class="icon">📉</span>Egresos</button>
+        <button class="btn" onclick="q('transporte')"><span class="icon">🚗</span>Transporte</button>
+        <button class="btn" onclick="q('hoy')"><span class="icon">📅</span>Hoy</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Por categoría</div>
+      <div class="btn-grid three">
+        <button class="btn" onclick="q('detalle comida')"><span class="icon">🍔</span><span class="label">Comida</span></button>
+        <button class="btn" onclick="q('detalle transporte')"><span class="icon">🚗</span><span class="label">Transporte</span></button>
+        <button class="btn" onclick="q('detalle ocio')"><span class="icon">🎮</span><span class="label">Ocio</span></button>
+        <button class="btn" onclick="q('detalle tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
+        <button class="btn" onclick="q('detalle tramites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
+        <button class="btn" onclick="q('detalle family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Por tarjeta</div>
+      <div class="btn-grid">
+        <button class="btn amber" onclick="q('detalle diners')"><span class="icon">💳</span>Diners</button>
+        <button class="btn amber" onclick="q('detalle visa')"><span class="icon">💳</span>Visa</button>
+        <button class="btn amber" onclick="q('detalle titanium')"><span class="icon">💳</span>Titanium</button>
+        <button class="btn amber" onclick="q('detalle deuna')"><span class="icon">📱</span>DeUna</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Otros</div>
+      <div class="btn-grid">
+        <button class="btn" onclick="q('suscripciones')"><span class="icon">🔄</span>Suscripciones</button>
+        <button class="btn" onclick="q('categorias')"><span class="icon">📊</span>Categorías</button>
+      </div>
+    </div>
+    <div class="result" id="result">
+      <div class="result-header" id="result-header">Resultado</div>
+      <div class="result-body" id="result-body"></div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Por categoría</div>
-    <div class="btn-grid three">
-      <button class="btn" onclick="q('detalle comida')"><span class="icon">🍔</span><span class="label">Comida</span></button>
-      <button class="btn" onclick="q('detalle transporte')"><span class="icon">🚗</span><span class="label">Transporte</span></button>
-      <button class="btn" onclick="q('detalle ocio')"><span class="icon">🎮</span><span class="label">Ocio</span></button>
-      <button class="btn" onclick="q('detalle tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
-      <button class="btn" onclick="q('detalle tramites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
-      <button class="btn" onclick="q('detalle family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
+  <!-- GRÁFICOS -->
+  <div class="page" id="page-graficos">
+    <div class="chart-container">
+      <div class="chart-title">Gastos por categoría — mes actual</div>
+      <canvas id="donaChart" height="260"></canvas>
+    </div>
+    <div class="result" id="chart-legend" style="display:block;">
+      <div class="result-body" id="legend-body" style="color:#555; font-size:13px;">Cargando datos...</div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Por tarjeta</div>
-    <div class="btn-grid">
-      <button class="btn amber" onclick="q('detalle diners')"><span class="icon">💳</span>Diners</button>
-      <button class="btn amber" onclick="q('detalle visa')"><span class="icon">💳</span>Visa</button>
-      <button class="btn amber" onclick="q('detalle titanium')"><span class="icon">💳</span>Titanium</button>
-      <button class="btn amber" onclick="q('detalle deuna')"><span class="icon">📱</span>DeUna</button>
+  <!-- REGISTRAR -->
+  <div class="page" id="page-registrar">
+    <div class="form-field">
+      <label>Fecha</label>
+      <input type="date" id="reg-fecha" />
     </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Otros</div>
-    <div class="btn-grid">
-      <button class="btn" onclick="q('suscripciones')"><span class="icon">🔄</span>Suscripciones</button>
-      <button class="btn" onclick="q('categorias')"><span class="icon">📊</span>Categorías</button>
+    <div class="form-field">
+      <label>Monto ($)</label>
+      <input type="number" id="reg-monto" placeholder="0.00" step="0.01" inputmode="decimal" />
     </div>
-  </div>
-
-  <div class="result" id="result">
-    <div class="result-header" id="result-header">Resultado</div>
-    <div class="result-body" id="result-body"></div>
+    <div class="form-field">
+      <label>Categoría</label>
+      <div class="pill-group" id="cat-pills">
+        <div class="pill" onclick="selectPill(this,'cat')">🚗 Transporte</div>
+        <div class="pill" onclick="selectPill(this,'cat')">🛒 Tienda</div>
+        <div class="pill" onclick="selectPill(this,'cat')">🍔 Comida</div>
+        <div class="pill" onclick="selectPill(this,'cat')">📋 Trámites</div>
+        <div class="pill" onclick="selectPill(this,'cat')">🎮 Ocio</div>
+        <div class="pill" onclick="selectPill(this,'cat')">👨‍👩‍👧 Family</div>
+        <div class="pill" onclick="selectPill(this,'cat')">📊 Estado cuenta</div>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Método de pago</label>
+      <div class="pill-group" id="met-pills">
+        <div class="pill" onclick="selectPill(this,'met')">💳 Diners</div>
+        <div class="pill" onclick="selectPill(this,'met')">💳 Visa Signature</div>
+        <div class="pill" onclick="selectPill(this,'met')">💳 Titanium Euphoria</div>
+        <div class="pill" onclick="selectPill(this,'met')">📱 DeUna!</div>
+        <div class="pill" onclick="selectPill(this,'met')">🏦 Transfer BP</div>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Descripción</label>
+      <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo..." />
+    </div>
+    <button class="submit-btn" onclick="registrar()">Registrar gasto</button>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
-if (scriptUrl) { document.getElementById('url-input').value = scriptUrl; mostrarApp(); }
+let selectedCat = '';
+let selectedMet = '';
+let chartInstance = null;
+
+if (scriptUrl) {
+  document.getElementById('url-input').value = scriptUrl;
+  mostrarApp();
+}
 
 function guardar() {
   const url = document.getElementById('url-input').value.trim();
@@ -111,6 +193,17 @@ function mostrarApp() {
   document.getElementById('config').style.display = 'none';
   document.getElementById('contenido').style.display = 'block';
   document.getElementById('status').innerHTML = '<span class="connected">Conectado</span>';
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('reg-fecha').value = hoy;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['consultas','graficos','registrar'][i] === tab);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'graficos') cargarGrafico();
 }
 
 async function q(cmd) {
@@ -123,11 +216,86 @@ async function q(cmd) {
   result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
     const res = await fetch(scriptUrl + '?cmd=' + encodeURIComponent(cmd));
-    const text = await res.text();
-    body.textContent = text;
+    body.textContent = await res.text();
   } catch(e) {
-    body.innerHTML = '<span class="error">Error de conexión. Verifica la URL.</span>';
+    body.innerHTML = '<span class="error">Error de conexión.</span>';
   }
+}
+
+async function cargarGrafico() {
+  const legend = document.getElementById('legend-body');
+  legend.textContent = 'Cargando datos...';
+  try {
+    const res = await fetch(scriptUrl + '?cmd=chart');
+    const data = await res.json();
+    const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b'];
+    const labels = data.map(d => d.nombre);
+    const valores = data.map(d => d.valor);
+    const total = valores.reduce((a,b) => a+b, 0);
+    if (chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById('donaChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0, holeRadius: 0.6 }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ' $' + ctx.parsed.toFixed(2) + ' (' + Math.round(ctx.parsed/total*100) + '%)'
+            }
+          }
+        },
+        cutout: '60%'
+      }
+    });
+    legend.innerHTML = data.map((d,i) =>
+      `<span style="color:${colores[i]}">■</span> ${d.nombre}: <strong style="color:#e0e0e0">$${d.valor}</strong> (${Math.round(d.valor/total*100)}%)`
+    ).join('<br>');
+  } catch(e) {
+    legend.innerHTML = '<span class="error">Error al cargar datos.</span>';
+  }
+}
+
+function selectPill(el, type) {
+  const group = type === 'cat' ? 'cat-pills' : 'met-pills';
+  document.querySelectorAll('#' + group + ' .pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  const val = el.textContent.replace(/^[^\w]+/, '').trim();
+  if (type === 'cat') selectedCat = val;
+  else selectedMet = val;
+}
+
+async function registrar() {
+  const fecha = document.getElementById('reg-fecha').value;
+  const monto = document.getElementById('reg-monto').value;
+  const desc = document.getElementById('reg-desc').value.trim();
+  if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
+    mostrarToast('Completa todos los campos');
+    return;
+  }
+  const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
+  try {
+    const res = await fetch(scriptUrl + '?' + params.toString());
+    const txt = await res.text();
+    mostrarToast(txt);
+    document.getElementById('reg-monto').value = '';
+    document.getElementById('reg-desc').value = '';
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    selectedCat = ''; selectedMet = '';
+  } catch(e) {
+    mostrarToast('Error al registrar');
+  }
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visible';
+  setTimeout(() => t.className = 'toast', 2500);
 }
 </script>
 </body>
