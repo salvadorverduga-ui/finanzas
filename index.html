@@ -47,6 +47,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .pill.selected { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
 .submit-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 12px; color: #7fd4a0; font-size: 15px; font-weight: 600; padding: 16px; width: 100%; cursor: pointer; margin-top: 8px; }
 .submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; }
 .toast.visible { display: block; }
 </style>
@@ -172,7 +173,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
       <label>Descripción</label>
       <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo..." />
     </div>
-    <button class="submit-btn" onclick="registrar()">Registrar gasto</button>
+    <button class="submit-btn" id="submit-btn" onclick="registrar()">Registrar gasto</button>
   </div>
 </div>
 
@@ -280,20 +281,27 @@ async function registrar() {
   const fecha = document.getElementById('reg-fecha').value;
   const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
+  const btn = document.getElementById('submit-btn');
   if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
     mostrarToast('Completa todos los campos');
     return;
   }
+  btn.textContent = 'Registrando...';
+  btn.disabled = true;
   const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
   try {
     const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
     const txt = await res.text();
+    btn.textContent = 'Registrar gasto';
+    btn.disabled = false;
     mostrarToast(txt);
     document.getElementById('reg-monto').value = '';
     document.getElementById('reg-desc').value = '';
     document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
     selectedCat = ''; selectedMet = '';
   } catch(e) {
+    btn.textContent = 'Registrar gasto';
+    btn.disabled = false;
     mostrarToast('Error al registrar');
   }
 }
@@ -303,7 +311,7 @@ function mostrarToast(msg) {
   t.textContent = msg;
   t.className = 'toast visible';
   setTimeout(() => t.className = 'toast', 2500);
-  }
+}
 </script>
 </body>
 </html>
