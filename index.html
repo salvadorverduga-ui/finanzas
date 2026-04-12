@@ -273,6 +273,7 @@ async function registrar() {
   const fecha = document.getElementById('reg-fecha').value;
   const monto = document.getElementById('reg-monto').value;
   const desc = document.getElementById('reg-desc').value.trim();
+  alert('cat: ' + selectedCat + ' | met: ' + selectedMet);
   if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
     mostrarToast('Completa todos los campos');
     return;
