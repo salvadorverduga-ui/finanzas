@@ -278,7 +278,6 @@ async function registrar() {
   }
   const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
   try {
-    mostrarToast(scriptUrl + '?' + params.toString());
     const res = await fetch(scriptUrl + '?' + params.toString());
     const txt = await res.text();
     mostrarToast(txt);
