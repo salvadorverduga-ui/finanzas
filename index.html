@@ -278,7 +278,7 @@ async function registrar() {
   }
   const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
   try {
-    const res = await fetch(scriptUrl + '?' + params.toString());
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
     const txt = await res.text();
     mostrarToast(txt);
     document.getElementById('reg-monto').value = '';
