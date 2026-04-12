@@ -50,16 +50,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; }
 .toast.visible { display: block; }
-.historial-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.historial-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.historial-vista { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .historial-info { flex: 1; }
 .historial-fecha { color: #666; font-size: 11px; margin-bottom: 3px; }
 .historial-desc { color: #e0e0e0; font-size: 14px; font-weight: 500; }
 .historial-meta { color: #888; font-size: 11px; margin-top: 2px; }
 .historial-monto { color: #7fd4a0; font-size: 15px; font-weight: 600; white-space: nowrap; }
-.delete-btn { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 8px; color: #e24b4a; font-size: 12px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
-.delete-btn:active { transform: scale(0.97); }
+.historial-acciones { display: flex; gap: 6px; margin-top: 8px; }
+.edit-btn { background: #1a2a3a; border: 1px solid #2a4a5a; border-radius: 8px; color: #7fb4d4; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
+.delete-btn { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 8px; color: #e24b4a; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
+.historial-form { display: none; margin-top: 10px; border-top: 1px solid #2a2a2a; padding-top: 10px; }
+.historial-form.visible { display: block; }
+.h-input { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 13px; padding: 8px 10px; width: 100%; outline: none; margin-bottom: 8px; }
+.h-select { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 13px; padding: 8px 10px; width: 100%; outline: none; margin-bottom: 8px; }
+.h-btns { display: flex; gap: 8px; }
+.save-edit-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 8px; color: #7fd4a0; font-size: 13px; padding: 10px; cursor: pointer; flex: 1; font-weight: 500; }
+.cancel-edit-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; color: #888; font-size: 13px; padding: 10px; cursor: pointer; flex: 1; }
 .refresh-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 13px; padding: 10px; width: 100%; cursor: pointer; margin-bottom: 16px; }
-.refresh-btn:active { background: #252525; }
 </style>
 </head>
 <body>
@@ -197,6 +205,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 <div class="toast" id="toast"></div>
 
 <script>
+const CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta"];
+const METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer BP"];
+
 let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
 let selectedCat = '';
 let selectedMet = '';
@@ -263,18 +274,11 @@ async function cargarGrafico() {
     const ctx = document.getElementById('donaChart').getContext('2d');
     chartInstance = new Chart(ctx, {
       type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0 }]
-      },
+      data: { labels, datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0 }] },
       options: {
         plugins: {
           legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => ' $' + ctx.parsed.toFixed(2) + ' (' + Math.round(ctx.parsed/total*100) + '%)'
-            }
-          }
+          tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.toFixed(2) + ' (' + Math.round(ctx.parsed/total*100) + '%)' } }
         },
         cutout: '60%'
       }
@@ -299,19 +303,69 @@ async function cargarHistorial() {
     }
     lista.innerHTML = data.map(r => `
       <div class="historial-item" id="item-${r.fila}">
-        <div class="historial-info">
-          <div class="historial-fecha">${r.fecha}</div>
-          <div class="historial-desc">${r.descripcion}</div>
-          <div class="historial-meta">${r.categoria} · ${r.metodo}</div>
-        </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+        <div class="historial-vista">
+          <div class="historial-info">
+            <div class="historial-fecha">${r.fecha}</div>
+            <div class="historial-desc">${r.descripcion}</div>
+            <div class="historial-meta">${r.categoria} · ${r.metodo}</div>
+          </div>
           <div class="historial-monto">$${r.monto}</div>
-          <button class="delete-btn" onclick="eliminar(${r.fila})">Eliminar</button>
+        </div>
+        <div class="historial-acciones">
+          <button class="edit-btn" onclick="toggleEdit(${r.fila})">✏️ Editar</button>
+          <button class="delete-btn" onclick="eliminar(${r.fila})">🗑 Eliminar</button>
+        </div>
+        <div class="historial-form" id="form-${r.fila}">
+          <input class="h-input" type="date" id="e-fecha-${r.fila}" value="${fechaAInput(r.fecha)}" />
+          <input class="h-input" type="text" id="e-monto-${r.fila}" value="${r.monto}" inputmode="decimal" placeholder="Monto" />
+          <select class="h-select" id="e-cat-${r.fila}">
+            ${CATS.map(c => `<option value="${c}" ${c === r.categoria ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+          <select class="h-select" id="e-met-${r.fila}">
+            ${METS.map(m => `<option value="${m}" ${m === r.metodo ? 'selected' : ''}>${m}</option>`).join('')}
+          </select>
+          <input class="h-input" type="text" id="e-desc-${r.fila}" value="${r.descripcion}" placeholder="Descripción" />
+          <div class="h-btns">
+            <button class="save-edit-btn" onclick="guardarEdicion(${r.fila})">Guardar</button>
+            <button class="cancel-edit-btn" onclick="toggleEdit(${r.fila})">Cancelar</button>
+          </div>
         </div>
       </div>
     `).join('');
   } catch(e) {
     lista.innerHTML = '<p class="error">Error al cargar historial.</p>';
+  }
+}
+
+function fechaAInput(fecha) {
+  const partes = fecha.split('/');
+  const hoy = new Date();
+  return hoy.getFullYear() + '-' + partes[1] + '-' + partes[0];
+}
+
+function toggleEdit(fila) {
+  const form = document.getElementById('form-' + fila);
+  form.classList.toggle('visible');
+}
+
+async function guardarEdicion(fila) {
+  const fecha = document.getElementById('e-fecha-' + fila).value;
+  const monto = document.getElementById('e-monto-' + fila).value.replace(',', '.');
+  const categoria = document.getElementById('e-cat-' + fila).value;
+  const metodo = document.getElementById('e-met-' + fila).value;
+  const descripcion = document.getElementById('e-desc-' + fila).value.trim();
+  if (!fecha || !monto || !categoria || !metodo || !descripcion) {
+    mostrarToast('Completa todos los campos');
+    return;
+  }
+  const params = new URLSearchParams({ cmd: 'editar', fila, fecha, monto, categoria, metodo, descripcion });
+  try {
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    cargarHistorial();
+  } catch(e) {
+    mostrarToast('Error al guardar');
   }
 }
 
