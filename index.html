@@ -93,6 +93,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
         <button class="btn" onclick="q('detalle tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
         <button class="btn" onclick="q('detalle tramites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
         <button class="btn" onclick="q('detalle family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
+        <button class="btn" onclick="q('detalle arriendo')"><span class="icon">🏠</span><span class="label">Arriendo</span></button>
+        <button class="btn" onclick="q('detalle necesidad')"><span class="icon">🧾</span><span class="label">Necesidad</span></button>
+        <button class="btn" onclick="q('detalle herramienta')"><span class="icon">🔧</span><span class="label">Herramienta</span></button>
+        <button class="btn" onclick="q('detalle estado cuenta')"><span class="icon">📊</span><span class="label">Estado cuenta</span></button>
       </div>
     </div>
     <div class="section">
@@ -102,6 +106,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
         <button class="btn amber" onclick="q('detalle visa')"><span class="icon">💳</span>Visa</button>
         <button class="btn amber" onclick="q('detalle titanium')"><span class="icon">💳</span>Titanium</button>
         <button class="btn amber" onclick="q('detalle deuna')"><span class="icon">📱</span>DeUna</button>
+        <button class="btn amber" onclick="q('detalle transfer')"><span class="icon">🏦</span>Transfer BP</button>
       </div>
     </div>
     <div class="section">
@@ -298,7 +303,7 @@ function mostrarToast(msg) {
   t.textContent = msg;
   t.className = 'toast visible';
   setTimeout(() => t.className = 'toast', 2500);
-}
+  }
 </script>
 </body>
 </html>
