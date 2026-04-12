@@ -141,23 +141,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
     <div class="form-field">
       <label>Categoría</label>
       <div class="pill-group" id="cat-pills">
-        <div class="pill" onclick="selectPill(this,'cat')">🚗 Transporte</div>
-        <div class="pill" onclick="selectPill(this,'cat')">🛒 Tienda</div>
-        <div class="pill" onclick="selectPill(this,'cat')">🍔 Comida</div>
-        <div class="pill" onclick="selectPill(this,'cat')">📋 Trámites</div>
-        <div class="pill" onclick="selectPill(this,'cat')">🎮 Ocio</div>
-        <div class="pill" onclick="selectPill(this,'cat')">👨‍👩‍👧 Family</div>
-        <div class="pill" onclick="selectPill(this,'cat')">📊 Estado cuenta</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Transporte">🚗 Transporte</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Tienda">🛒 Tienda</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Comida">🍔 Comida</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Trámites">📋 Trámites</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Ocio">🎮 Ocio</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Family">👨‍👩‍👧 Family</div>
+        <div class="pill" onclick="selectPill(this,'cat')" data-value="Estado cuenta">📊 Estado cuenta</div>
       </div>
     </div>
     <div class="form-field">
       <label>Método de pago</label>
       <div class="pill-group" id="met-pills">
-        <div class="pill" onclick="selectPill(this,'met')">💳 Diners</div>
-        <div class="pill" onclick="selectPill(this,'met')">💳 Visa Signature</div>
-        <div class="pill" onclick="selectPill(this,'met')">💳 Titanium Euphoria</div>
-        <div class="pill" onclick="selectPill(this,'met')">📱 DeUna!</div>
-        <div class="pill" onclick="selectPill(this,'met')">🏦 Transfer BP</div>
+        <div class="pill" onclick="selectPill(this,'met')" data-value="Diners">💳 Diners</div>
+        <div class="pill" onclick="selectPill(this,'met')" data-value="Visa Signature">💳 Visa Signature</div>
+        <div class="pill" onclick="selectPill(this,'met')" data-value="Titanium Euphoria">💳 Titanium Euphoria</div>
+        <div class="pill" onclick="selectPill(this,'met')" data-value="DeUna!">📱 DeUna!</div>
+        <div class="pill" onclick="selectPill(this,'met')" data-value="Transfer BP">🏦 Transfer BP</div>
       </div>
     </div>
     <div class="form-field">
@@ -238,7 +238,7 @@ async function cargarGrafico() {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0, holeRadius: 0.6 }]
+        datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0 }]
       },
       options: {
         plugins: {
@@ -264,16 +264,14 @@ function selectPill(el, type) {
   const group = type === 'cat' ? 'cat-pills' : 'met-pills';
   document.querySelectorAll('#' + group + ' .pill').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
-  const val = el.textContent.replace(/^[\p{Emoji}\s]+/u, '').trim();
-  if (type === 'cat') selectedCat = val;
-  else selectedMet = val;
+  if (type === 'cat') selectedCat = el.dataset.value;
+  else selectedMet = el.dataset.value;
 }
 
 async function registrar() {
   const fecha = document.getElementById('reg-fecha').value;
   const monto = document.getElementById('reg-monto').value;
   const desc = document.getElementById('reg-desc').value.trim();
-  alert('cat: ' + selectedCat + ' | met: ' + selectedMet);
   if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
     mostrarToast('Completa todos los campos');
     return;
