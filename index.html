@@ -118,12 +118,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .offline-banner { background: #1a1000; border: 1px solid #3a2800; border-radius: 10px; color: #a08030; font-size: 12px; padding: 8px 12px; margin-bottom: 12px; display: none; text-align: center; }
 .offline-banner.visible { display: block; }
 
-/* Search bar */
-.search-bar { display: flex; align-items: center; gap: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
-.search-icon { font-size: 14px; flex-shrink: 0; }
-.search-bar input { background: transparent; border: none; color: #fff; font-size: 14px; outline: none; flex: 1; }
-.search-bar input::placeholder { color: #444; }
-.search-clear { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 0; line-height: 1; }
+/* Historial filter buttons */
+.hist-filter-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.hist-filter-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; color: #888; font-size: 12px; padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hist-filter-btn.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
+.hist-filter-clear { background: #2a1a1a; border: 1px solid #3a2a2a; border-radius: 20px; color: #e07070; font-size: 12px; padding: 6px 12px; cursor: pointer; display: none; }
 
 /* Proyección */
 .proy-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
@@ -186,7 +185,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 <body>
 
 <div class="header">
-  <h1>💰 Finanzas</h1>
+  <h1 id="header-title" onclick="irAlSheets()" style="cursor:pointer">💰 Finanzas</h1>
   <p id="status">Configura tu script para empezar</p>
 </div>
 
@@ -231,7 +230,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div class="btn-grid">
         <button class="btn green" onclick="q('resumen')"><span class="icon">📊</span>Resumen</button>
         <button class="btn green" onclick="q('balance')"><span class="icon">💰</span>Balance</button>
-        <button class="btn" onclick="q('ingresos')"><span class="icon">📈</span>Ingresos</button>
+        <button class="btn" onclick="detalleIngresos()"><span class="icon">📈</span>Ingresos</button>
         <button class="btn" onclick="q('egresos')"><span class="icon">📉</span>Egresos</button>
         <button class="btn" onclick="q('transporte')"><span class="icon">🚗</span>Transporte</button>
         <button class="btn" onclick="q('hoy')"><span class="icon">📅</span>Hoy</button>
@@ -240,16 +239,16 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="section">
       <div class="section-title">Por categoría</div>
       <div class="btn-grid three">
-        <button class="btn" onclick="q('detalle comida')"><span class="icon">🍔</span><span class="label">Comida</span></button>
-        <button class="btn" onclick="q('detalle transporte')"><span class="icon">🚗</span><span class="label">Transporte</span></button>
-        <button class="btn" onclick="q('detalle ocio')"><span class="icon">🎮</span><span class="label">Ocio</span></button>
-        <button class="btn" onclick="q('detalle tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
-        <button class="btn" onclick="q('detalle tramites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
-        <button class="btn" onclick="q('detalle family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
-        <button class="btn" onclick="q('detalle arriendo')"><span class="icon">🏠</span><span class="label">Arriendo</span></button>
-        <button class="btn" onclick="q('detalle necesidad')"><span class="icon">🧾</span><span class="label">Necesidad</span></button>
-        <button class="btn" onclick="q('detalle herramienta')"><span class="icon">🔧</span><span class="label">Herramienta</span></button>
-        <button class="btn" onclick="q('detalle estado cuenta')"><span class="icon">📊</span><span class="label">Estado cuenta</span></button>
+        <button class="btn" onclick="detalleCat('Comida')"><span class="icon">🍔</span><span class="label">Comida</span></button>
+        <button class="btn" onclick="detalleCat('Transporte')"><span class="icon">🚗</span><span class="label">Transporte</span></button>
+        <button class="btn" onclick="detalleCat('Ocio')"><span class="icon">🎮</span><span class="label">Ocio</span></button>
+        <button class="btn" onclick="detalleCat('Tienda')"><span class="icon">🛒</span><span class="label">Tienda</span></button>
+        <button class="btn" onclick="detalleCat('Trámites')"><span class="icon">📋</span><span class="label">Trámites</span></button>
+        <button class="btn" onclick="detalleCat('Family')"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
+        <button class="btn" onclick="detalleCat('Arriendo')"><span class="icon">🏠</span><span class="label">Arriendo</span></button>
+        <button class="btn" onclick="detalleCat('Necesidad')"><span class="icon">🧾</span><span class="label">Necesidad</span></button>
+        <button class="btn" onclick="detalleCat('Herramienta')"><span class="icon">🔧</span><span class="label">Herramienta</span></button>
+        <button class="btn" onclick="detalleCat('Estado cuenta')"><span class="icon">📊</span><span class="label">Estado cuenta</span></button>
       </div>
     </div>
     <div class="section">
@@ -417,12 +416,25 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <!-- HISTORIAL -->
   <div class="page" id="page-historial">
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="Buscar por descripción, categoría, monto..." oninput="filtrarHistorial()" />
-      <button class="search-clear" id="search-clear" onclick="limpiarBusqueda()" style="display:none">✕</button>
+    <div class="hist-filter-wrap" id="hist-filter-wrap">
+      <button class="hist-filter-btn active" onclick="setFiltroHist('todos')">Todos</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Transporte')">🚗 Transporte</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Comida')">🍔 Comida</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Ocio')">🎮 Ocio</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Tienda')">🛒 Tienda</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Trámites')">📋 Trámites</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Family')">👨‍👩‍👧 Family</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Arriendo')">🏠 Arriendo</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Necesidad')">🧾 Necesidad</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Herramienta')">🔧 Herramienta</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Estado cuenta')">📊 Estado cuenta</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Diners')">💳 Diners</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Visa Signature')">💳 Visa</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Titanium Euphoria')">💳 Titanium</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('DeUna!')">📱 DeUna</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Transfer BP')">🏦 Transfer</button>
     </div>
-    <div id="search-count" style="color:#555; font-size:11px; margin-bottom:10px; display:none;"></div>
+    <div id="hist-filter-count" style="color:#555; font-size:11px; margin-bottom:10px; display:none;"></div>
     <button class="refresh-btn" onclick="cargarHistorial()">↻ Actualizar historial</button>
     <div id="historial-lista"><p style="color:#555; font-size:13px;">Cargando...</p></div>
   </div>
@@ -474,6 +486,7 @@ const METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer B
 const MESES_LABEL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
+let sheetsUrl = localStorage.getItem('finanzas_sheets_url') || '';
 let selectedCat = '';
 let selectedMet = '';
 let chartInstance = null;
@@ -504,11 +517,96 @@ function mostrarApp() {
   document.getElementById('reg-fecha').value = hoy.toISOString().split('T')[0];
   mesSeleccionado = hoy.getMonth() + 1;
   document.getElementById('month-select').value = mesSeleccionado;
-  // Pre-populate comparar selects with last two months
   const m1 = mesSeleccionado;
   const m2 = m1 > 1 ? m1 - 1 : 12;
   document.getElementById('comp-mes1').value = m1;
   document.getElementById('comp-mes2').value = m2;
+  // Obtener URL del spreadsheet si no la tenemos cacheada
+  if (!sheetsUrl) {
+    fetch(scriptUrl + '?cmd=info', { redirect: 'follow' })
+      .then(r => r.json())
+      .then(d => { if (d.sheets_url) { sheetsUrl = d.sheets_url; localStorage.setItem('finanzas_sheets_url', sheetsUrl); } })
+      .catch(() => {});
+  }
+}
+
+// ── IR AL SHEETS ────────────────────────────────────────────
+function irAlSheets() {
+  if (!sheetsUrl) { mostrarToast('URL del Sheets no disponible aún'); return; }
+  if (confirm('¿Abrir Google Sheets?')) window.open(sheetsUrl, '_blank');
+}
+
+// ── DETALLE CATEGORÍA CON CORTES ────────────────────────────
+async function detalleCat(cat) {
+  const result = document.getElementById('result');
+  const body = document.getElementById('result-body');
+  const header = document.getElementById('result-header');
+  document.getElementById('result-subs').style.display = 'none';
+  result.className = 'result visible';
+  header.textContent = cat;
+  body.innerHTML = '<span class="loading">Cargando...</span>';
+  result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Si estamos en consultas, necesitamos hacer scroll al resultado
+  try {
+    const url = scriptUrl + '?cmd=detalle_cat&cat=' + encodeURIComponent(cat) + '&mes=' + mesSeleccionado;
+    const res = await fetch(url, { redirect: 'follow' });
+    const data = await res.json();
+    if (!data.bloques) { body.textContent = 'Sin datos.'; return; }
+    let html = `<div style="font-size:13px;color:#7fd4a0;font-weight:700;margin-bottom:12px;">${data.categoria} — ${data.mes}</div>`;
+    let hayDatos = false;
+    data.bloques.forEach(bloque => {
+      if (!bloque.items.length) return;
+      hayDatos = true;
+      html += `<div style="margin-bottom:14px;">
+        <div style="color:#555;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">${bloque.titulo} <span style="color:#333;">· ${bloque.periodo}</span></div>`;
+      bloque.items.forEach(item => {
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;gap:8px;">
+          <span style="color:#666;font-size:11px;flex-shrink:0;">${item.fecha}</span>
+          <span style="color:#e0e0e0;flex:1;font-size:13px;">${item.descripcion}</span>
+          <span style="color:#e07070;font-size:13px;font-weight:600;white-space:nowrap;">$${item.monto}</span>
+        </div>`;
+      });
+      html += `<div style="text-align:right;font-size:11px;color:#888;margin-top:6px;padding-top:4px;">Subtotal: <strong style="color:#e0e0e0;">$${bloque.total}</strong></div></div>`;
+    });
+    if (!hayDatos) { body.innerHTML = `<span style="color:#555;font-size:13px;">Sin gastos de ${data.categoria} este mes.</span>`; return; }
+    html += `<div style="border-top:1px solid #2a2a2a;margin-top:4px;padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Total consolidado</span>
+      <span style="color:#fff;font-size:16px;font-weight:700;">$${data.total}</span>
+    </div>`;
+    body.innerHTML = html;
+  } catch(e) { body.innerHTML = '<span class="error">Error al cargar.</span>'; }
+}
+
+// ── DETALLE INGRESOS ────────────────────────────────────────
+async function detalleIngresos() {
+  const result = document.getElementById('result');
+  const body = document.getElementById('result-body');
+  const header = document.getElementById('result-header');
+  document.getElementById('result-subs').style.display = 'none';
+  result.className = 'result visible';
+  header.textContent = 'Ingresos del mes';
+  body.innerHTML = '<span class="loading">Cargando...</span>';
+  result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    const res = await fetch(urlConMes('ingresos_detalle'), { redirect: 'follow' });
+    const data = await res.json();
+    if (!data.items || !data.items.length) { body.innerHTML = '<span style="color:#555;font-size:13px;">No hay ingresos registrados este mes.</span>'; return; }
+    let html = '';
+    data.items.forEach(item => {
+      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1a1a1a;gap:8px;">
+        <div style="flex:1;">
+          <div style="color:#e0e0e0;font-size:13px;font-weight:500;">${item.descripcion}</div>
+          <div style="color:#555;font-size:11px;margin-top:2px;">${item.fecha} · ${item.fuente}</div>
+        </div>
+        <div style="color:#7fb4d4;font-size:14px;font-weight:700;white-space:nowrap;">+$${item.monto}</div>
+      </div>`;
+    });
+    html += `<div style="border-top:1px solid #2a2a2a;margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Total ingresos</span>
+      <span style="color:#7fb4d4;font-size:16px;font-weight:700;">+$${data.total}</span>
+    </div>`;
+    body.innerHTML = html;
+  } catch(e) { body.innerHTML = '<span class="error">Error al cargar.</span>'; }
 }
 
 function onMesChange() {
@@ -766,35 +864,41 @@ function renderComparar(data) {
     </div>`;
 }
 
-// ── BÚSQUEDA EN HISTORIAL ────────────────────────────────────
+// ── FILTRO HISTORIAL POR BOTONES ─────────────────────────────
 let historialData = [];
+let filtroActivo = 'todos'; // categoría, método, o 'todos'
 
-function filtrarHistorial() {
-  const q = document.getElementById('search-input').value.toLowerCase().trim();
-  const clearBtn = document.getElementById('search-clear');
-  const countEl = document.getElementById('search-count');
-  clearBtn.style.display = q ? 'block' : 'none';
-  if (!q) {
-    countEl.style.display = 'none';
-    document.querySelectorAll('.historial-item').forEach(el => el.style.display = 'block');
-    return;
-  }
+function setFiltroHist(filtro) {
+  filtroActivo = filtro;
+  // Actualizar botones
+  document.querySelectorAll('.hist-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().replace(/^[^\w]*/, '').toLowerCase() === filtro.toLowerCase() || (filtro === 'todos' && btn.textContent.trim() === 'Todos'));
+  });
+  aplicarFiltroHist();
+}
+
+function aplicarFiltroHist() {
+  const countEl = document.getElementById('hist-filter-count');
   let visibles = 0;
   document.querySelectorAll('.historial-item').forEach((el, i) => {
     const r = historialData[historialData.length - 1 - i];
     if (!r) return;
-    const texto = (r.descripcion + ' ' + r.categoria + ' ' + r.monto + ' ' + (r.metodo||'')).toLowerCase();
-    const match = texto.includes(q);
+    let match = false;
+    if (filtroActivo === 'todos') {
+      match = true;
+    } else {
+      // Puede coincidir con categoría o con método de pago
+      match = (r.categoria === filtroActivo) || (r.metodo === filtroActivo);
+    }
     el.style.display = match ? 'block' : 'none';
     if (match) visibles++;
   });
-  countEl.style.display = 'block';
-  countEl.textContent = visibles + ' resultado' + (visibles !== 1 ? 's' : '');
-}
-
-function limpiarBusqueda() {
-  document.getElementById('search-input').value = '';
-  filtrarHistorial();
+  if (filtroActivo !== 'todos') {
+    countEl.style.display = 'block';
+    countEl.textContent = visibles + ' resultado' + (visibles !== 1 ? 's' : '') + ' — ' + filtroActivo;
+  } else {
+    countEl.style.display = 'none';
+  }
 }
 
 // ── PROYECCIÓN ────────────────────────────────────────────────
