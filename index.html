@@ -117,6 +117,28 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .cache-badge { display: inline-block; background: #2a2000; border: 1px solid #4a3800; color: #a08030; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
 .offline-banner { background: #1a1000; border: 1px solid #3a2800; border-radius: 10px; color: #a08030; font-size: 12px; padding: 8px 12px; margin-bottom: 12px; display: none; text-align: center; }
 .offline-banner.visible { display: block; }
+
+/* Search bar */
+.search-bar { display: flex; align-items: center; gap: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+.search-icon { font-size: 14px; flex-shrink: 0; }
+.search-bar input { background: transparent; border: none; color: #fff; font-size: 14px; outline: none; flex: 1; }
+.search-bar input::placeholder { color: #444; }
+.search-clear { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 0; line-height: 1; }
+
+/* Proyección */
+.proy-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.proy-label { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.proy-valor { font-size: 26px; font-weight: 700; color: #e0e0e0; }
+.proy-valor.ok { color: #7fd4a0; }
+.proy-valor.warn { color: #e8a838; }
+.proy-valor.danger { color: #e05252; }
+.proy-sub { color: #666; font-size: 12px; margin-top: 4px; }
+.proy-cat-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #222; font-size: 13px; }
+.proy-cat-row:last-child { border-bottom: none; }
+.proy-cat-nombre { color: #aaa; }
+.proy-cat-nums { text-align: right; }
+.proy-cat-actual { color: #e0e0e0; font-weight: 600; }
+.proy-cat-proyectado { color: #666; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -161,6 +183,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="tab" onclick="switchTab('graficos')">Gráficos</div>
     <div class="tab" onclick="switchTab('registrar')">Registrar</div>
     <div class="tab" onclick="switchTab('historial')">Historial</div>
+    <div class="tab" onclick="switchTab('proyeccion')">📈 Proyección</div>
   </div>
 
   <!-- CONSULTAS -->
@@ -315,8 +338,57 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <!-- HISTORIAL -->
   <div class="page" id="page-historial">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Buscar por descripción, categoría, monto..." oninput="filtrarHistorial()" />
+      <button class="search-clear" id="search-clear" onclick="limpiarBusqueda()" style="display:none">✕</button>
+    </div>
+    <div id="search-count" style="color:#555; font-size:11px; margin-bottom:10px; display:none;"></div>
     <button class="refresh-btn" onclick="cargarHistorial()">↻ Actualizar historial</button>
     <div id="historial-lista"><p style="color:#555; font-size:13px;">Cargando...</p></div>
+  </div>
+
+  <!-- PROYECCIÓN -->
+  <div class="page" id="page-proyeccion">
+    <div class="proy-card" id="proy-loading">
+      <p style="color:#555; font-size:13px;">Cargando proyección...</p>
+    </div>
+    <div id="proy-contenido" style="display:none">
+      <!-- Ritmo diario -->
+      <div class="proy-card">
+        <div class="proy-label">Ritmo de gasto diario</div>
+        <div class="proy-valor" id="proy-diario">—</div>
+        <div class="proy-sub" id="proy-dias-trans"></div>
+      </div>
+      <!-- Proyección fin de mes -->
+      <div class="proy-card">
+        <div class="proy-label">Proyección a fin de mes</div>
+        <div class="proy-valor" id="proy-total-mes">—</div>
+        <div class="proy-sub" id="proy-total-sub"></div>
+      </div>
+      <!-- Disponible al ritmo actual -->
+      <div class="proy-card" id="proy-resultado-card">
+        <div class="proy-label">Disponible estimado al fin de mes</div>
+        <div class="proy-valor" id="proy-disponible">—</div>
+        <div class="proy-sub" id="proy-disponible-sub"></div>
+      </div>
+      <!-- Barra de progreso del mes -->
+      <div class="proy-card">
+        <div class="proy-label" style="margin-bottom:10px;">Avance del mes</div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" id="proy-mes-fill" style="width:0%"></div>
+        </div>
+        <div class="budget-bar-sub" style="margin-top:8px;">
+          <span style="color:#888;" id="proy-dia-actual"></span>
+          <span style="color:#888;" id="proy-dias-rest"></span>
+        </div>
+      </div>
+      <!-- Desglose por categoría con proyección -->
+      <div class="proy-card">
+        <div class="proy-label" style="margin-bottom:12px;">Proyección por categoría</div>
+        <div id="proy-cats"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -373,12 +445,136 @@ function onMesChange() {
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['consultas','graficos','registrar','historial'][i] === tab);
+    t.classList.toggle('active', ['consultas','graficos','registrar','historial','proyeccion'][i] === tab);
   });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
   if (tab === 'graficos') cargarGrafico();
   if (tab === 'historial') cargarHistorial();
+  if (tab === 'proyeccion') cargarProyeccion();
+}
+
+// ── BÚSQUEDA EN HISTORIAL ────────────────────────────────────────────────────
+let historialData = []; // copia en memoria para filtrar sin red
+
+function filtrarHistorial() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const clearBtn = document.getElementById('search-clear');
+  const countEl = document.getElementById('search-count');
+  clearBtn.style.display = q ? 'block' : 'none';
+
+  if (!q) {
+    countEl.style.display = 'none';
+    document.querySelectorAll('.historial-item').forEach(el => el.style.display = 'block');
+    return;
+  }
+
+  let visibles = 0;
+  document.querySelectorAll('.historial-item').forEach((el, i) => {
+    const r = historialData[historialData.length - 1 - i]; // orden inverso igual que render
+    if (!r) return;
+    const texto = (r.descripcion + ' ' + r.categoria + ' ' + r.monto + ' ' + (r.metodo||'')).toLowerCase();
+    const match = texto.includes(q);
+    el.style.display = match ? 'block' : 'none';
+    if (match) visibles++;
+  });
+
+  countEl.style.display = 'block';
+  countEl.textContent = visibles + ' resultado' + (visibles !== 1 ? 's' : '');
+}
+
+function limpiarBusqueda() {
+  document.getElementById('search-input').value = '';
+  filtrarHistorial();
+}
+
+// ── PROYECCIÓN ───────────────────────────────────────────────────────────────
+async function cargarProyeccion() {
+  document.getElementById('proy-loading').style.display = 'block';
+  document.getElementById('proy-contenido').style.display = 'none';
+
+  // Necesitamos: ingresos (B2), egresos (B3), categorías (G4:G9), y el mes seleccionado
+  // Usamos caché de chart si existe, y pedimos resumen si no
+  let sueldo = 0, gastoActual = 0, cats = [];
+
+  const cachedChart = leerCache('chart');
+  if (cachedChart && cachedChart.data && cachedChart.data.gastos) {
+    sueldo = cachedChart.data.sueldo || 0;
+    cats = cachedChart.data.gastos;
+    gastoActual = cats.reduce((a,b) => a + b.valor, 0);
+  }
+
+  // Intentar actualizar desde red
+  try {
+    const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('chart', data);
+    if (data.gastos) {
+      sueldo = data.sueldo || 0;
+      cats = data.gastos;
+      gastoActual = cats.reduce((a,b) => a + b.valor, 0);
+    }
+  } catch(e) { /* usar caché si falló */ }
+
+  if (sueldo === 0 && gastoActual === 0) {
+    document.getElementById('proy-loading').innerHTML = '<p style="color:#666;font-size:13px;">Sin datos disponibles. Abrí Gráficos primero para cargar los datos.</p>';
+    return;
+  }
+
+  // Calcular días
+  const hoy = new Date();
+  const esMesActual = (mesSeleccionado - 1) === hoy.getMonth() && hoy.getFullYear() === new Date().getFullYear();
+  const diasEnMes = new Date(hoy.getFullYear(), mesSeleccionado, 0).getDate();
+  const diaActual = esMesActual ? hoy.getDate() : diasEnMes;
+  const diasRestantes = diasEnMes - diaActual;
+  const pctMes = Math.round((diaActual / diasEnMes) * 100);
+
+  const gastoDiario = diaActual > 0 ? gastoActual / diaActual : 0;
+  const proyeccionFin = gastoDiario * diasEnMes;
+  const disponibleEstimado = sueldo - proyeccionFin;
+
+  // Render
+  document.getElementById('proy-loading').style.display = 'none';
+  document.getElementById('proy-contenido').style.display = 'block';
+
+  // Ritmo diario
+  document.getElementById('proy-diario').textContent = '$' + gastoDiario.toFixed(2) + '/día';
+  document.getElementById('proy-dias-trans').textContent =
+    'Basado en ' + diaActual + ' día' + (diaActual !== 1 ? 's' : '') + ' transcurrido' + (diaActual !== 1 ? 's' : '');
+
+  // Proyección fin de mes
+  const pEl = document.getElementById('proy-total-mes');
+  pEl.textContent = '$' + proyeccionFin.toFixed(2);
+  pEl.className = 'proy-valor' + (proyeccionFin > sueldo ? ' danger' : proyeccionFin > sueldo * 0.85 ? ' warn' : ' ok');
+  document.getElementById('proy-total-sub').textContent =
+    'Gastado hasta hoy: $' + gastoActual.toFixed(2) + ' · Proyectado: $' + proyeccionFin.toFixed(2);
+
+  // Disponible estimado
+  const dEl = document.getElementById('proy-disponible');
+  dEl.textContent = '$' + Math.abs(disponibleEstimado).toFixed(2) + (disponibleEstimado < 0 ? ' en rojo' : ' sobrante');
+  dEl.className = 'proy-valor' + (disponibleEstimado < 0 ? ' danger' : disponibleEstimado < sueldo * 0.1 ? ' warn' : ' ok');
+  document.getElementById('proy-disponible-sub').textContent =
+    sueldo > 0 ? 'Ingresos $' + sueldo.toFixed(2) + ' − proyección $' + proyeccionFin.toFixed(2) : 'Sin dato de ingresos';
+
+  // Barra de avance del mes
+  const fill = document.getElementById('proy-mes-fill');
+  fill.style.width = pctMes + '%';
+  fill.className = 'budget-bar-fill' + (pctMes >= 90 ? ' danger' : pctMes >= 70 ? ' warn' : '');
+  document.getElementById('proy-dia-actual').textContent = 'Día ' + diaActual + ' de ' + diasEnMes;
+  document.getElementById('proy-dias-rest').textContent = diasRestantes + ' día' + (diasRestantes !== 1 ? 's' : '') + ' restante' + (diasRestantes !== 1 ? 's' : '');
+
+  // Proyección por categoría
+  const catsHtml = cats.map(c => {
+    const proy = diaActual > 0 ? (c.valor / diaActual) * diasEnMes : 0;
+    return `<div class="proy-cat-row">
+      <span class="proy-cat-nombre">${c.nombre}</span>
+      <span class="proy-cat-nums">
+        <span class="proy-cat-actual">$${c.valor.toFixed(2)}</span>
+        <span class="proy-cat-proyectado"> → $${proy.toFixed(2)}</span>
+      </span>
+    </div>`;
+  }).join('');
+  document.getElementById('proy-cats').innerHTML = catsHtml;
 }
 
 // ── CACHÉ ────────────────────────────────────────────────────────────────────
@@ -621,6 +817,7 @@ async function cargarHistorial() {
   // Mostrar caché mientras carga
   const cached = leerCache('historial');
   if (cached) {
+    historialData = cached.data;
     renderHistorial(cached.data, true, cached.ts);
   } else {
     lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
@@ -630,6 +827,7 @@ async function cargarHistorial() {
     const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
     const data = await res.json();
     guardarCache('historial', data);
+    historialData = data;
     renderHistorial(data, false, null);
     mostrarOfflineBanner(false);
   } catch(e) {
