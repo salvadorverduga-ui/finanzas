@@ -112,6 +112,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 /* Legend items */
 .legend-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Cache badge */
+.cache-badge { display: inline-block; background: #2a2000; border: 1px solid #4a3800; color: #a08030; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+.offline-banner { background: #1a1000; border: 1px solid #3a2800; border-radius: 10px; color: #a08030; font-size: 12px; padding: 8px 12px; margin-bottom: 12px; display: none; text-align: center; }
+.offline-banner.visible { display: block; }
 </style>
 </head>
 <body>
@@ -129,7 +134,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
 <div id="contenido" style="display:none">
 
-  <!-- Month selector -->
+  <div class="offline-banner" id="offline-banner">⚠️ Sin conexión — mostrando último dato guardado</div>
+
+  <!-- Month selector (visible en todas las páginas) -->
   <div class="month-bar">
     <label>Mes</label>
     <select class="month-select" id="month-select" onchange="onMesChange()">
@@ -205,6 +212,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div class="result-header" id="result-header">Resultado</div>
       <div class="result-body" id="result-body"></div>
     </div>
+    <!-- Panel especial de suscripciones -->
     <div class="result" id="result-subs" style="display:none;">
       <div class="result-header">Suscripciones activas</div>
       <div class="subs-wrap" id="subs-body"></div>
@@ -213,6 +221,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <!-- GRÁFICOS -->
   <div class="page" id="page-graficos">
+    <!-- Barra de sueldo -->
     <div class="budget-bar-wrap">
       <div class="budget-bar-header">
         <span class="budget-bar-label">Sueldo vs Gastos</span>
@@ -226,6 +235,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <span class="budget-bar-left" id="budget-left">Disponible: —</span>
       </div>
     </div>
+
     <div class="chart-container">
       <div class="chart-title">Gastos por categoría</div>
       <canvas id="donaChart" height="260"></canvas>
@@ -237,10 +247,12 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <!-- REGISTRAR -->
   <div class="page" id="page-registrar">
+    <!-- Toggle gasto / ingreso -->
     <div class="reg-toggle">
       <div class="reg-toggle-btn active-expense" id="toggle-gasto" onclick="setTipoReg('gasto')">📉 Gasto</div>
       <div class="reg-toggle-btn" id="toggle-ingreso" onclick="setTipoReg('ingreso')">📈 Ingreso</div>
     </div>
+
     <div class="form-field">
       <label>Fecha</label>
       <input type="date" id="reg-fecha" />
@@ -249,6 +261,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <label>Monto ($)</label>
       <input type="text" id="reg-monto" placeholder="0.00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" />
     </div>
+
+    <!-- Campos solo para gasto -->
     <div id="campos-gasto">
       <div class="form-field">
         <label>Categoría</label>
@@ -276,6 +290,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </div>
       </div>
     </div>
+
+    <!-- Campos solo para ingreso -->
     <div id="campos-ingreso" style="display:none;">
       <div class="form-field">
         <label>Fuente</label>
@@ -289,6 +305,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </select>
       </div>
     </div>
+
     <div class="form-field">
       <label>Descripción</label>
       <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo, sueldo mensual..." />
@@ -313,7 +330,9 @@ let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
 let selectedCat = '';
 let selectedMet = '';
 let chartInstance = null;
-let tipoReg = 'gasto';
+let tipoReg = 'gasto'; // 'gasto' | 'ingreso'
+
+// Mes seleccionado (número 1-12)
 let mesSeleccionado = new Date().getMonth() + 1;
 
 if (scriptUrl) {
@@ -335,12 +354,14 @@ function mostrarApp() {
   document.getElementById('status').innerHTML = '<span class="connected">Conectado</span>';
   const hoy = new Date();
   document.getElementById('reg-fecha').value = hoy.toISOString().split('T')[0];
+  // Set month selector
   mesSeleccionado = hoy.getMonth() + 1;
   document.getElementById('month-select').value = mesSeleccionado;
 }
 
 function onMesChange() {
   mesSeleccionado = parseInt(document.getElementById('month-select').value);
+  // Refrescar tab activo si es gráficos
   const activeTab = document.querySelector('.tab.active');
   if (activeTab) {
     const tabs = ['consultas','graficos','registrar','historial'];
@@ -360,10 +381,41 @@ function switchTab(tab) {
   if (tab === 'historial') cargarHistorial();
 }
 
+// ── CACHÉ ────────────────────────────────────────────────────────────────────
+function cacheKey(cmd) { return 'cache_' + cmd + '_mes' + mesSeleccionado; }
+
+function guardarCache(cmd, data) {
+  try {
+    localStorage.setItem(cacheKey(cmd), JSON.stringify({ ts: Date.now(), data }));
+  } catch(e) {}
+}
+
+function leerCache(cmd) {
+  try {
+    const raw = localStorage.getItem(cacheKey(cmd));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function formatTs(ts) {
+  const d = new Date(ts);
+  return d.getDate().toString().padStart(2,'0') + '/' +
+    (d.getMonth()+1).toString().padStart(2,'0') + ' ' +
+    d.getHours().toString().padStart(2,'0') + ':' +
+    d.getMinutes().toString().padStart(2,'0');
+}
+
+function mostrarOfflineBanner(visible) {
+  document.getElementById('offline-banner').className = 'offline-banner' + (visible ? ' visible' : '');
+}
+
+// ── URL helper ───────────────────────────────────────────────────────────────
 function urlConMes(cmd) {
   return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado;
 }
 
+// ── CONSULTAS con caché ──────────────────────────────────────────────────────
 async function q(cmd) {
   const result = document.getElementById('result');
   const body = document.getElementById('result-body');
@@ -371,23 +423,55 @@ async function q(cmd) {
   document.getElementById('result-subs').style.display = 'none';
   result.className = 'result visible';
   header.textContent = cmd;
-  body.innerHTML = '<span class="loading">Cargando...</span>';
+
+  // Mostrar caché inmediatamente si existe
+  const cached = leerCache(cmd);
+  if (cached) {
+    body.innerHTML = `<span class="cache-badge">📦 guardado ${formatTs(cached.ts)}</span>\n${cached.data}`;
+  } else {
+    body.innerHTML = '<span class="loading">Cargando...</span>';
+  }
   result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
   try {
     const res = await fetch(urlConMes(cmd), { redirect: 'follow' });
-    body.textContent = await res.text();
+    const txt = await res.text();
+    guardarCache(cmd, txt);
+    body.textContent = txt;
+    mostrarOfflineBanner(false);
   } catch(e) {
-    body.innerHTML = '<span class="error">Error de conexión.</span>';
+    if (cached) {
+      mostrarOfflineBanner(true);
+    } else {
+      body.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
+    }
   }
 }
 
+// ── SUSCRIPCIONES con caché ──────────────────────────────────────────────────
 async function consultarSuscripciones() {
   const panel = document.getElementById('result-subs');
   const body = document.getElementById('subs-body');
   document.getElementById('result').className = 'result';
   panel.style.display = 'block';
-  body.innerHTML = '<span class="loading" style="font-size:13px;color:#444;">Cargando...</span>';
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  function renderSubs(items, fromCache, ts) {
+    const badge = fromCache ? `<div><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
+    if (items.length === 0) {
+      body.innerHTML = badge + '<span style="color:#555;font-size:13px;">Sin suscripciones.</span>';
+    } else {
+      body.innerHTML = badge + '<div class="subs-wrap">' + items.map(s => `<span class="sub-bubble">${s}</span>`).join('') + '</div>';
+    }
+  }
+
+  const cached = leerCache('suscripciones');
+  if (cached) {
+    renderSubs(cached.data, true, cached.ts);
+  } else {
+    body.innerHTML = '<span class="loading" style="font-size:13px;color:#444;">Cargando...</span>';
+  }
+
   try {
     const res = await fetch(urlConMes('suscripciones'), { redirect: 'follow' });
     const txt = await res.text();
@@ -398,27 +482,24 @@ async function consultarSuscripciones() {
     } catch {
       items = txt.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
     }
-    if (items.length === 0) {
-      body.innerHTML = '<span style="color:#555;font-size:13px;">Sin suscripciones este mes.</span>';
-    } else {
-      body.innerHTML = items.map(s => `<span class="sub-bubble">${s}</span>`).join('');
-    }
+    guardarCache('suscripciones', items);
+    renderSubs(items, false, null);
+    mostrarOfflineBanner(false);
   } catch(e) {
-    body.innerHTML = '<span class="error" style="font-size:13px;">Error de conexión.</span>';
+    if (cached) {
+      mostrarOfflineBanner(true);
+    } else {
+      body.innerHTML = '<span class="error" style="font-size:13px;">Sin conexión y sin datos guardados.</span>';
+    }
   }
 }
 
+// ── GRÁFICO con caché ────────────────────────────────────────────────────────
 async function cargarGrafico() {
   const legend = document.getElementById('legend-body');
-  legend.textContent = 'Cargando datos...';
-  document.getElementById('budget-nums').textContent = '—';
-  document.getElementById('budget-fill').style.width = '0%';
-  document.getElementById('budget-spent').textContent = 'Gastado: —';
-  document.getElementById('budget-left').textContent = 'Disponible: —';
-  try {
-    const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
-    const data = await res.json();
-    const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b','#50b4b4','#d47fc0'];
+  const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b','#50b4b4','#d47fc0'];
+
+  function renderGrafico(data, fromCache, ts) {
     let categorias = [];
     let sueldo = 0;
     if (Array.isArray(data)) {
@@ -430,6 +511,7 @@ async function cargarGrafico() {
     const labels = categorias.map(d => d.nombre);
     const valores = categorias.map(d => d.valor);
     const total = valores.reduce((a,b) => a+b, 0);
+
     if (sueldo > 0) {
       const pct = Math.min((total / sueldo) * 100, 100);
       const fill = document.getElementById('budget-fill');
@@ -441,6 +523,7 @@ async function cargarGrafico() {
     } else {
       document.getElementById('budget-nums').textContent = 'Sin dato de sueldo';
     }
+
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('donaChart').getContext('2d');
     chartInstance = new Chart(ctx, {
@@ -454,25 +537,51 @@ async function cargarGrafico() {
         cutout: '60%'
       }
     });
-    legend.innerHTML = categorias.map((d,i) =>
+
+    const badge = fromCache ? `<div><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
+    legend.innerHTML = badge + categorias.map((d,i) =>
       `<div class="legend-item"><span class="legend-dot" style="background:${colores[i]}"></span>${d.nombre}: <strong style="color:#e0e0e0;margin-left:4px;">$${d.valor}</strong> <span style="color:#555;">(${Math.round(d.valor/total*100)}%)</span></div>`
     ).join('');
+  }
+
+  // Mostrar caché mientras carga
+  const cached = leerCache('chart');
+  if (cached) {
+    renderGrafico(cached.data, true, cached.ts);
+  } else {
+    legend.textContent = 'Cargando datos...';
+    document.getElementById('budget-nums').textContent = '—';
+    document.getElementById('budget-fill').style.width = '0%';
+    document.getElementById('budget-spent').textContent = 'Gastado: —';
+    document.getElementById('budget-left').textContent = 'Disponible: —';
+  }
+
+  try {
+    const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('chart', data);
+    renderGrafico(data, false, null);
+    mostrarOfflineBanner(false);
   } catch(e) {
-    legend.innerHTML = '<span class="error">Error al cargar datos.</span>';
+    if (cached) {
+      mostrarOfflineBanner(true);
+    } else {
+      legend.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
+    }
   }
 }
 
+// ── HISTORIAL con caché ──────────────────────────────────────────────────────
 async function cargarHistorial() {
   const lista = document.getElementById('historial-lista');
-  lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
-  try {
-    const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
-    const data = await res.json();
+
+  function renderHistorial(data, fromCache, ts) {
     if (data.length === 0) {
       lista.innerHTML = '<p style="color:#555; font-size:13px;">No hay registros.</p>';
       return;
     }
-    lista.innerHTML = data.map(r => {
+    const badge = fromCache ? `<div style="margin-bottom:10px;"><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
+    lista.innerHTML = badge + data.map(r => {
       const esIngreso = r.tipo === 'ingreso' || (r.categoria && r.categoria.toLowerCase().includes('ingreso'));
       const montoClass = esIngreso ? 'ingreso' : 'gasto';
       const montoPrefix = esIngreso ? '+' : '-';
@@ -507,8 +616,28 @@ async function cargarHistorial() {
         </div>
       </div>`;
     }).join('');
+  }
+
+  // Mostrar caché mientras carga
+  const cached = leerCache('historial');
+  if (cached) {
+    renderHistorial(cached.data, true, cached.ts);
+  } else {
+    lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
+  }
+
+  try {
+    const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('historial', data);
+    renderHistorial(data, false, null);
+    mostrarOfflineBanner(false);
   } catch(e) {
-    lista.innerHTML = '<p class="error">Error al cargar historial.</p>';
+    if (cached) {
+      mostrarOfflineBanner(true);
+    } else {
+      lista.innerHTML = '<p class="error">Sin conexión y sin datos guardados.</p>';
+    }
   }
 }
 
@@ -561,6 +690,7 @@ function setTipoReg(tipo) {
   const camposGasto = document.getElementById('campos-gasto');
   const camposIngreso = document.getElementById('campos-ingreso');
   const submitBtn = document.getElementById('submit-btn');
+
   if (tipo === 'gasto') {
     btnGasto.className = 'reg-toggle-btn active-expense';
     btnIngreso.className = 'reg-toggle-btn';
@@ -583,6 +713,7 @@ async function registrar() {
   const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
   const btn = document.getElementById('submit-btn');
+
   if (tipoReg === 'gasto') {
     if (!fecha || !monto || !selectedCat || !selectedMet || !desc) { mostrarToast('Completa todos los campos'); return; }
     btn.textContent = 'Registrando...';
@@ -610,6 +741,7 @@ async function registrar() {
       document.getElementById('reg-fuente').value = '';
     } catch(e) { mostrarToast('Error al registrar'); }
   }
+
   btn.textContent = tipoReg === 'gasto' ? 'Registrar gasto' : 'Registrar ingreso';
   btn.disabled = false;
 }
