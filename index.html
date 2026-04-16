@@ -11,6 +11,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .header { text-align: center; padding: 20px 0 24px; }
 .header h1 { font-size: 22px; font-weight: 600; }
 .header p { color: #666; font-size: 13px; margin-top: 4px; }
+
+/* Month selector */
+.month-bar { display: flex; align-items: center; gap: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; }
+.month-bar label { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+.month-select { background: transparent; border: none; color: #7fd4a0; font-size: 14px; font-weight: 600; outline: none; cursor: pointer; flex: 1; appearance: none; -webkit-appearance: none; }
+.month-select option { background: #1a1a1a; color: #fff; }
+.month-arrow { color: #555; font-size: 12px; pointer-events: none; }
+
 .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
 .tab { flex: 1; padding: 10px 4px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; }
 .tab.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
@@ -30,6 +38,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .btn .label { font-size: 11px; color: #888; font-weight: 400; }
 .btn.green { border-color: #2a5a3a; background: #111e16; }
 .btn.amber { border-color: #3a2a0a; background: #1e1608; }
+.btn.blue { border-color: #1a3a5a; background: #0e1e2e; }
 .result { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-top: 4px; display: none; }
 .result.visible { display: block; }
 .result-header { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -37,18 +46,42 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .loading { color: #444; font-style: italic; }
 .error { color: #e24b4a; }
 .connected { color: #7fd4a0; font-size: 12px; }
-.chart-container { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.chart-container { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
 .chart-title { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+/* Budget bar */
+.budget-bar-wrap { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.budget-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.budget-bar-label { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.budget-bar-nums { font-size: 12px; color: #888; }
+.budget-bar-nums strong { color: #e0e0e0; }
+.budget-bar-track { background: #111; border-radius: 20px; height: 12px; overflow: hidden; }
+.budget-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #4e9a6f, #7fd4a0); transition: width 0.5s ease; }
+.budget-bar-fill.warn { background: linear-gradient(90deg, #e8a838, #f5c870); }
+.budget-bar-fill.danger { background: linear-gradient(90deg, #e05252, #f08080); }
+.budget-bar-sub { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; }
+.budget-bar-spent { color: #e24b4a; }
+.budget-bar-left { color: #7fd4a0; }
+
 .form-field { margin-bottom: 14px; }
 .form-field label { color: #888; font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.form-field input { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; padding: 12px; width: 100%; outline: none; }
+.form-field input, .form-field select { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 15px; padding: 12px; width: 100%; outline: none; }
+.form-field select option { background: #1a1a1a; }
 .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; padding: 8px 14px; color: #888; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pill.selected { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
 .submit-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 12px; color: #7fd4a0; font-size: 15px; font-weight: 600; padding: 16px; width: 100%; cursor: pointer; margin-top: 8px; }
 .submit-btn:active { transform: scale(0.98); }
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; }
+.submit-btn.income-btn { background: #1a2a3a; border-color: #2a4a6a; color: #7fb4d4; }
+
+/* Register type toggle */
+.reg-toggle { display: flex; gap: 6px; margin-bottom: 18px; }
+.reg-toggle-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; border: 1px solid #2a2a2a; background: #1a1a1a; color: #888; }
+.reg-toggle-btn.active-expense { background: #1a1a1a; border-color: #5a2a2a; color: #e07070; }
+.reg-toggle-btn.active-income { background: #1a2a3a; border-color: #2a4a6a; color: #7fb4d4; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 100; white-space: nowrap; }
 .toast.visible { display: block; }
 .historial-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
 .historial-vista { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -56,7 +89,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .historial-fecha { color: #666; font-size: 11px; margin-bottom: 3px; }
 .historial-desc { color: #e0e0e0; font-size: 14px; font-weight: 500; }
 .historial-meta { color: #888; font-size: 11px; margin-top: 2px; }
-.historial-monto { color: #7fd4a0; font-size: 15px; font-weight: 600; white-space: nowrap; }
+.historial-monto { font-size: 15px; font-weight: 600; white-space: nowrap; }
+.historial-monto.gasto { color: #e07070; }
+.historial-monto.ingreso { color: #7fb4d4; }
 .historial-acciones { display: flex; gap: 6px; margin-top: 8px; }
 .edit-btn { background: #1a2a3a; border: 1px solid #2a4a5a; border-radius: 8px; color: #7fb4d4; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
 .delete-btn { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 8px; color: #e24b4a; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
@@ -69,6 +104,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .cancel-edit-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; color: #888; font-size: 13px; padding: 10px; cursor: pointer; flex: 1; }
 .refresh-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 13px; padding: 10px; width: 100%; cursor: pointer; margin-bottom: 16px; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+/* Subscription bubbles */
+.subs-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.sub-bubble { background: #141e1a; border: 1px solid #2a3a30; border-radius: 20px; padding: 7px 14px; font-size: 13px; color: #a0d4b8; white-space: nowrap; }
+
+/* Legend items */
+.legend-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -85,6 +128,27 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 </div>
 
 <div id="contenido" style="display:none">
+
+  <!-- Month selector -->
+  <div class="month-bar">
+    <label>Mes</label>
+    <select class="month-select" id="month-select" onchange="onMesChange()">
+      <option value="1">Enero</option>
+      <option value="2">Febrero</option>
+      <option value="3">Marzo</option>
+      <option value="4">Abril</option>
+      <option value="5">Mayo</option>
+      <option value="6">Junio</option>
+      <option value="7">Julio</option>
+      <option value="8">Agosto</option>
+      <option value="9">Septiembre</option>
+      <option value="10">Octubre</option>
+      <option value="11">Noviembre</option>
+      <option value="12">Diciembre</option>
+    </select>
+    <span class="month-arrow">▾</span>
+  </div>
+
   <div class="tabs">
     <div class="tab active" onclick="switchTab('consultas')">Consultas</div>
     <div class="tab" onclick="switchTab('graficos')">Gráficos</div>
@@ -133,7 +197,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="section">
       <div class="section-title">Otros</div>
       <div class="btn-grid">
-        <button class="btn" onclick="q('suscripciones')"><span class="icon">🔄</span>Suscripciones</button>
+        <button class="btn" onclick="consultarSuscripciones()"><span class="icon">🔄</span>Suscripciones</button>
         <button class="btn" onclick="q('categorias')"><span class="icon">📊</span>Categorías</button>
       </div>
     </div>
@@ -141,12 +205,29 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div class="result-header" id="result-header">Resultado</div>
       <div class="result-body" id="result-body"></div>
     </div>
+    <div class="result" id="result-subs" style="display:none;">
+      <div class="result-header">Suscripciones activas</div>
+      <div class="subs-wrap" id="subs-body"></div>
+    </div>
   </div>
 
   <!-- GRÁFICOS -->
   <div class="page" id="page-graficos">
+    <div class="budget-bar-wrap">
+      <div class="budget-bar-header">
+        <span class="budget-bar-label">Sueldo vs Gastos</span>
+        <span class="budget-bar-nums" id="budget-nums">—</span>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill" id="budget-fill" style="width:0%"></div>
+      </div>
+      <div class="budget-bar-sub">
+        <span class="budget-bar-spent" id="budget-spent">Gastado: —</span>
+        <span class="budget-bar-left" id="budget-left">Disponible: —</span>
+      </div>
+    </div>
     <div class="chart-container">
-      <div class="chart-title">Gastos por categoría — mes actual</div>
+      <div class="chart-title">Gastos por categoría</div>
       <canvas id="donaChart" height="260"></canvas>
     </div>
     <div class="result" id="chart-legend" style="display:block;">
@@ -156,6 +237,10 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <!-- REGISTRAR -->
   <div class="page" id="page-registrar">
+    <div class="reg-toggle">
+      <div class="reg-toggle-btn active-expense" id="toggle-gasto" onclick="setTipoReg('gasto')">📉 Gasto</div>
+      <div class="reg-toggle-btn" id="toggle-ingreso" onclick="setTipoReg('ingreso')">📈 Ingreso</div>
+    </div>
     <div class="form-field">
       <label>Fecha</label>
       <input type="date" id="reg-fecha" />
@@ -164,34 +249,49 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <label>Monto ($)</label>
       <input type="text" id="reg-monto" placeholder="0.00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" />
     </div>
-    <div class="form-field">
-      <label>Categoría</label>
-      <div class="pill-group" id="cat-pills">
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Transporte">🚗 Transporte</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Comida">🍔 Comida</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Trámites">📋 Trámites</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Estado cuenta">📊 Estado cuenta</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Tienda">🛒 Tienda</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Ocio">🎮 Ocio</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Family">👨‍👩‍👧 Family</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Arriendo">🏠 Arriendo</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Necesidad">🧾 Necesidad</div>
-        <div class="pill" onclick="selectPill(this,'cat')" data-value="Herramienta">🔧 Herramienta</div>
+    <div id="campos-gasto">
+      <div class="form-field">
+        <label>Categoría</label>
+        <div class="pill-group" id="cat-pills">
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Transporte">🚗 Transporte</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Comida">🍔 Comida</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Trámites">📋 Trámites</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Estado cuenta">📊 Estado cuenta</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Tienda">🛒 Tienda</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Ocio">🎮 Ocio</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Family">👨‍👩‍👧 Family</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Arriendo">🏠 Arriendo</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Necesidad">🧾 Necesidad</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Herramienta">🔧 Herramienta</div>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Método de pago</label>
+        <div class="pill-group" id="met-pills">
+          <div class="pill" onclick="selectPill(this,'met')" data-value="Diners">💳 Diners</div>
+          <div class="pill" onclick="selectPill(this,'met')" data-value="Visa Signature">💳 Visa Signature</div>
+          <div class="pill" onclick="selectPill(this,'met')" data-value="Titanium Euphoria">💳 Titanium Euphoria</div>
+          <div class="pill" onclick="selectPill(this,'met')" data-value="DeUna!">📱 DeUna!</div>
+          <div class="pill" onclick="selectPill(this,'met')" data-value="Transfer BP">🏦 Transfer BP</div>
+        </div>
       </div>
     </div>
-    <div class="form-field">
-      <label>Método de pago</label>
-      <div class="pill-group" id="met-pills">
-        <div class="pill" onclick="selectPill(this,'met')" data-value="Diners">💳 Diners</div>
-        <div class="pill" onclick="selectPill(this,'met')" data-value="Visa Signature">💳 Visa Signature</div>
-        <div class="pill" onclick="selectPill(this,'met')" data-value="Titanium Euphoria">💳 Titanium Euphoria</div>
-        <div class="pill" onclick="selectPill(this,'met')" data-value="DeUna!">📱 DeUna!</div>
-        <div class="pill" onclick="selectPill(this,'met')" data-value="Transfer BP">🏦 Transfer BP</div>
+    <div id="campos-ingreso" style="display:none;">
+      <div class="form-field">
+        <label>Fuente</label>
+        <select id="reg-fuente">
+          <option value="">Selecciona fuente...</option>
+          <option value="Sueldo">💼 Sueldo</option>
+          <option value="Freelance">💻 Freelance</option>
+          <option value="Bono">🎁 Bono</option>
+          <option value="Reembolso">↩️ Reembolso</option>
+          <option value="Otro ingreso">📥 Otro ingreso</option>
+        </select>
       </div>
     </div>
     <div class="form-field">
       <label>Descripción</label>
-      <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo..." />
+      <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo, sueldo mensual..." />
     </div>
     <button class="submit-btn" id="submit-btn" onclick="registrar()">Registrar gasto</button>
   </div>
@@ -213,6 +313,8 @@ let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
 let selectedCat = '';
 let selectedMet = '';
 let chartInstance = null;
+let tipoReg = 'gasto';
+let mesSeleccionado = new Date().getMonth() + 1;
 
 if (scriptUrl) {
   document.getElementById('url-input').value = scriptUrl;
@@ -231,8 +333,21 @@ function mostrarApp() {
   document.getElementById('config').style.display = 'none';
   document.getElementById('contenido').style.display = 'block';
   document.getElementById('status').innerHTML = '<span class="connected">Conectado</span>';
-  const hoy = new Date().toISOString().split('T')[0];
-  document.getElementById('reg-fecha').value = hoy;
+  const hoy = new Date();
+  document.getElementById('reg-fecha').value = hoy.toISOString().split('T')[0];
+  mesSeleccionado = hoy.getMonth() + 1;
+  document.getElementById('month-select').value = mesSeleccionado;
+}
+
+function onMesChange() {
+  mesSeleccionado = parseInt(document.getElementById('month-select').value);
+  const activeTab = document.querySelector('.tab.active');
+  if (activeTab) {
+    const tabs = ['consultas','graficos','registrar','historial'];
+    const idx = [...document.querySelectorAll('.tab')].indexOf(activeTab);
+    if (tabs[idx] === 'graficos') cargarGrafico();
+  }
+  mostrarToast('Mes: ' + document.getElementById('month-select').options[document.getElementById('month-select').selectedIndex].text);
 }
 
 function switchTab(tab) {
@@ -245,32 +360,87 @@ function switchTab(tab) {
   if (tab === 'historial') cargarHistorial();
 }
 
+function urlConMes(cmd) {
+  return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado;
+}
+
 async function q(cmd) {
   const result = document.getElementById('result');
   const body = document.getElementById('result-body');
   const header = document.getElementById('result-header');
+  document.getElementById('result-subs').style.display = 'none';
   result.className = 'result visible';
   header.textContent = cmd;
   body.innerHTML = '<span class="loading">Cargando...</span>';
   result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
-    const res = await fetch(scriptUrl + '?cmd=' + encodeURIComponent(cmd));
+    const res = await fetch(urlConMes(cmd), { redirect: 'follow' });
     body.textContent = await res.text();
   } catch(e) {
     body.innerHTML = '<span class="error">Error de conexión.</span>';
   }
 }
 
+async function consultarSuscripciones() {
+  const panel = document.getElementById('result-subs');
+  const body = document.getElementById('subs-body');
+  document.getElementById('result').className = 'result';
+  panel.style.display = 'block';
+  body.innerHTML = '<span class="loading" style="font-size:13px;color:#444;">Cargando...</span>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    const res = await fetch(urlConMes('suscripciones'), { redirect: 'follow' });
+    const txt = await res.text();
+    let items = [];
+    try {
+      const json = JSON.parse(txt);
+      items = Array.isArray(json) ? json : [txt];
+    } catch {
+      items = txt.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    }
+    if (items.length === 0) {
+      body.innerHTML = '<span style="color:#555;font-size:13px;">Sin suscripciones este mes.</span>';
+    } else {
+      body.innerHTML = items.map(s => `<span class="sub-bubble">${s}</span>`).join('');
+    }
+  } catch(e) {
+    body.innerHTML = '<span class="error" style="font-size:13px;">Error de conexión.</span>';
+  }
+}
+
 async function cargarGrafico() {
   const legend = document.getElementById('legend-body');
   legend.textContent = 'Cargando datos...';
+  document.getElementById('budget-nums').textContent = '—';
+  document.getElementById('budget-fill').style.width = '0%';
+  document.getElementById('budget-spent').textContent = 'Gastado: —';
+  document.getElementById('budget-left').textContent = 'Disponible: —';
   try {
-    const res = await fetch(scriptUrl + '?cmd=chart', { redirect: 'follow' });
+    const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
     const data = await res.json();
-    const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b'];
-    const labels = data.map(d => d.nombre);
-    const valores = data.map(d => d.valor);
+    const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b','#50b4b4','#d47fc0'];
+    let categorias = [];
+    let sueldo = 0;
+    if (Array.isArray(data)) {
+      categorias = data;
+    } else if (data.gastos) {
+      categorias = data.gastos;
+      sueldo = data.sueldo || 0;
+    }
+    const labels = categorias.map(d => d.nombre);
+    const valores = categorias.map(d => d.valor);
     const total = valores.reduce((a,b) => a+b, 0);
+    if (sueldo > 0) {
+      const pct = Math.min((total / sueldo) * 100, 100);
+      const fill = document.getElementById('budget-fill');
+      fill.style.width = pct + '%';
+      fill.className = 'budget-bar-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+      document.getElementById('budget-nums').innerHTML = `<strong>$${total.toFixed(2)}</strong> / $${sueldo.toFixed(2)}`;
+      document.getElementById('budget-spent').textContent = `Gastado: $${total.toFixed(2)} (${Math.round(pct)}%)`;
+      document.getElementById('budget-left').textContent = `Disponible: $${(sueldo - total).toFixed(2)}`;
+    } else {
+      document.getElementById('budget-nums').textContent = 'Sin dato de sueldo';
+    }
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('donaChart').getContext('2d');
     chartInstance = new Chart(ctx, {
@@ -284,9 +454,9 @@ async function cargarGrafico() {
         cutout: '60%'
       }
     });
-    legend.innerHTML = data.map((d,i) =>
-      `<span style="color:${colores[i]}">■</span> ${d.nombre}: <strong style="color:#e0e0e0">$${d.valor}</strong> (${Math.round(d.valor/total*100)}%)`
-    ).join('<br>');
+    legend.innerHTML = categorias.map((d,i) =>
+      `<div class="legend-item"><span class="legend-dot" style="background:${colores[i]}"></span>${d.nombre}: <strong style="color:#e0e0e0;margin-left:4px;">$${d.valor}</strong> <span style="color:#555;">(${Math.round(d.valor/total*100)}%)</span></div>`
+    ).join('');
   } catch(e) {
     legend.innerHTML = '<span class="error">Error al cargar datos.</span>';
   }
@@ -296,21 +466,25 @@ async function cargarHistorial() {
   const lista = document.getElementById('historial-lista');
   lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
   try {
-    const res = await fetch(scriptUrl + '?cmd=historial', { redirect: 'follow' });
+    const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
     const data = await res.json();
     if (data.length === 0) {
       lista.innerHTML = '<p style="color:#555; font-size:13px;">No hay registros.</p>';
       return;
     }
-    lista.innerHTML = data.map(r => `
+    lista.innerHTML = data.map(r => {
+      const esIngreso = r.tipo === 'ingreso' || (r.categoria && r.categoria.toLowerCase().includes('ingreso'));
+      const montoClass = esIngreso ? 'ingreso' : 'gasto';
+      const montoPrefix = esIngreso ? '+' : '-';
+      return `
       <div class="historial-item" id="item-${r.fila}">
         <div class="historial-vista">
           <div class="historial-info">
             <div class="historial-fecha">${r.fecha}</div>
             <div class="historial-desc">${r.descripcion}</div>
-            <div class="historial-meta">${r.categoria} · ${r.metodo}</div>
+            <div class="historial-meta">${r.categoria} · ${r.metodo || r.fuente || ''}</div>
           </div>
-          <div class="historial-monto">$${r.monto}</div>
+          <div class="historial-monto ${montoClass}">${montoPrefix}$${r.monto}</div>
         </div>
         <div class="historial-acciones">
           <button class="edit-btn" onclick="toggleEdit(${r.fila})">✏️ Editar</button>
@@ -323,7 +497,7 @@ async function cargarHistorial() {
             ${CATS.map(c => `<option value="${c}" ${c === r.categoria ? 'selected' : ''}>${c}</option>`).join('')}
           </select>
           <select class="h-select" id="e-met-${r.fila}">
-            ${METS.map(m => `<option value="${m}" ${m === r.metodo ? 'selected' : ''}>${m}</option>`).join('')}
+            ${METS.map(m => `<option value="${m}" ${m === (r.metodo||'') ? 'selected' : ''}>${m}</option>`).join('')}
           </select>
           <input class="h-input" type="text" id="e-desc-${r.fila}" value="${r.descripcion}" placeholder="Descripción" />
           <div class="h-btns">
@@ -331,8 +505,8 @@ async function cargarHistorial() {
             <button class="cancel-edit-btn" onclick="toggleEdit(${r.fila})">Cancelar</button>
           </div>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     lista.innerHTML = '<p class="error">Error al cargar historial.</p>';
   }
@@ -345,8 +519,7 @@ function fechaAInput(fecha) {
 }
 
 function toggleEdit(fila) {
-  const form = document.getElementById('form-' + fila);
-  form.classList.toggle('visible');
+  document.getElementById('form-' + fila).classList.toggle('visible');
 }
 
 async function guardarEdicion(fila) {
@@ -355,31 +528,22 @@ async function guardarEdicion(fila) {
   const categoria = document.getElementById('e-cat-' + fila).value;
   const metodo = document.getElementById('e-met-' + fila).value;
   const descripcion = document.getElementById('e-desc-' + fila).value.trim();
-  if (!fecha || !monto || !categoria || !metodo || !descripcion) {
-    mostrarToast('Completa todos los campos');
-    return;
-  }
+  if (!fecha || !monto || !categoria || !metodo || !descripcion) { mostrarToast('Completa todos los campos'); return; }
   const params = new URLSearchParams({ cmd: 'editar', fila, fecha, monto, categoria, metodo, descripcion });
   try {
     const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-    const txt = await res.text();
-    mostrarToast(txt);
+    mostrarToast(await res.text());
     cargarHistorial();
-  } catch(e) {
-    mostrarToast('Error al guardar');
-  }
+  } catch(e) { mostrarToast('Error al guardar'); }
 }
 
 async function eliminar(fila) {
   if (!confirm('¿Eliminar este registro?')) return;
   try {
     const res = await fetch(scriptUrl + '?cmd=eliminar&fila=' + fila, { redirect: 'follow' });
-    const txt = await res.text();
-    mostrarToast(txt);
+    mostrarToast(await res.text());
     document.getElementById('item-' + fila).remove();
-  } catch(e) {
-    mostrarToast('Error al eliminar');
-  }
+  } catch(e) { mostrarToast('Error al eliminar'); }
 }
 
 function selectPill(el, type) {
@@ -390,33 +554,64 @@ function selectPill(el, type) {
   else selectedMet = el.dataset.value;
 }
 
+function setTipoReg(tipo) {
+  tipoReg = tipo;
+  const btnGasto = document.getElementById('toggle-gasto');
+  const btnIngreso = document.getElementById('toggle-ingreso');
+  const camposGasto = document.getElementById('campos-gasto');
+  const camposIngreso = document.getElementById('campos-ingreso');
+  const submitBtn = document.getElementById('submit-btn');
+  if (tipo === 'gasto') {
+    btnGasto.className = 'reg-toggle-btn active-expense';
+    btnIngreso.className = 'reg-toggle-btn';
+    camposGasto.style.display = 'block';
+    camposIngreso.style.display = 'none';
+    submitBtn.textContent = 'Registrar gasto';
+    submitBtn.className = 'submit-btn';
+  } else {
+    btnGasto.className = 'reg-toggle-btn';
+    btnIngreso.className = 'reg-toggle-btn active-income';
+    camposGasto.style.display = 'none';
+    camposIngreso.style.display = 'block';
+    submitBtn.textContent = 'Registrar ingreso';
+    submitBtn.className = 'submit-btn income-btn';
+  }
+}
+
 async function registrar() {
   const fecha = document.getElementById('reg-fecha').value;
   const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
   const btn = document.getElementById('submit-btn');
-  if (!fecha || !monto || !selectedCat || !selectedMet || !desc) {
-    mostrarToast('Completa todos los campos');
-    return;
+  if (tipoReg === 'gasto') {
+    if (!fecha || !monto || !selectedCat || !selectedMet || !desc) { mostrarToast('Completa todos los campos'); return; }
+    btn.textContent = 'Registrando...';
+    btn.disabled = true;
+    const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
+    try {
+      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+      mostrarToast(await res.text());
+      document.getElementById('reg-monto').value = '';
+      document.getElementById('reg-desc').value = '';
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+      selectedCat = ''; selectedMet = '';
+    } catch(e) { mostrarToast('Error al registrar'); }
+  } else {
+    const fuente = document.getElementById('reg-fuente').value;
+    if (!fecha || !monto || !fuente || !desc) { mostrarToast('Completa todos los campos'); return; }
+    btn.textContent = 'Registrando...';
+    btn.disabled = true;
+    const params = new URLSearchParams({ cmd: 'registrar_ingreso', fecha, monto, fuente, descripcion: desc });
+    try {
+      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+      mostrarToast(await res.text());
+      document.getElementById('reg-monto').value = '';
+      document.getElementById('reg-desc').value = '';
+      document.getElementById('reg-fuente').value = '';
+    } catch(e) { mostrarToast('Error al registrar'); }
   }
-  btn.textContent = 'Registrando...';
-  btn.disabled = true;
-  const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
-  try {
-    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-    const txt = await res.text();
-    btn.textContent = 'Registrar gasto';
-    btn.disabled = false;
-    mostrarToast(txt);
-    document.getElementById('reg-monto').value = '';
-    document.getElementById('reg-desc').value = '';
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
-    selectedCat = ''; selectedMet = '';
-  } catch(e) {
-    btn.textContent = 'Registrar gasto';
-    btn.disabled = false;
-    mostrarToast('Error al registrar');
-  }
+  btn.textContent = tipoReg === 'gasto' ? 'Registrar gasto' : 'Registrar ingreso';
+  btn.disabled = false;
 }
 
 function mostrarToast(msg) {
