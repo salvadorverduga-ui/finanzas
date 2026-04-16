@@ -19,8 +19,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .month-select option { background: #1a1a1a; color: #fff; }
 .month-arrow { color: #555; font-size: 12px; pointer-events: none; }
 
-.tabs { display: flex; gap: 6px; margin-bottom: 20px; }
-.tab { flex: 1; padding: 10px 4px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; }
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.tab { flex: 0 0 auto; padding: 9px 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 11px; font-weight: 500; cursor: pointer; text-align: center; white-space: nowrap; }
 .tab.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
 .page { display: none; }
 .page.active { display: block; }
@@ -49,7 +49,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 .chart-container { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
 .chart-title { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
 
-/* Budget bar */
+/* Budget bar (global) */
 .budget-bar-wrap { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
 .budget-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
 .budget-bar-label { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
@@ -139,6 +139,48 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .proy-cat-nums { text-align: right; }
 .proy-cat-actual { color: #e0e0e0; font-weight: 600; }
 .proy-cat-proyectado { color: #666; font-size: 11px; }
+
+/* ── PRESUPUESTOS ── */
+.pres-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.pres-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pres-nombre { font-size: 14px; font-weight: 600; color: #e0e0e0; }
+.pres-nums { font-size: 12px; color: #888; text-align: right; }
+.pres-nums strong { color: #e0e0e0; }
+.pres-pct { font-size: 18px; font-weight: 700; margin-left: 8px; }
+.pres-pct.ok { color: #7fd4a0; }
+.pres-pct.warn { color: #e8a838; }
+.pres-pct.danger { color: #e05252; }
+.pres-track { background: #111; border-radius: 20px; height: 8px; overflow: hidden; }
+.pres-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #4e9a6f, #7fd4a0); transition: width 0.5s ease; }
+.pres-fill.warn { background: linear-gradient(90deg, #e8a838, #f5c870); }
+.pres-fill.danger { background: linear-gradient(90deg, #e05252, #f08080); }
+.pres-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; }
+.pres-gastado { color: #e24b4a; }
+.pres-restante { color: #7fd4a0; }
+.pres-restante.negativo { color: #e05252; }
+.pres-sin-limite { color: #555; font-size: 12px; font-style: italic; }
+.pres-aviso { background: #1a1000; border: 1px solid #3a2800; border-radius: 10px; color: #a08030; font-size: 12px; padding: 10px 14px; margin-bottom: 14px; line-height: 1.5; }
+
+/* ── HISTÓRICO / COMPARAR ── */
+.hist-toggle { display: flex; gap: 6px; margin-bottom: 16px; }
+.hist-toggle-btn { flex: 1; padding: 9px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; border: 1px solid #2a2a2a; background: #1a1a1a; color: #888; }
+.hist-toggle-btn.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
+.comp-selector { display: flex; gap: 8px; margin-bottom: 14px; }
+.comp-selector select { background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 13px; padding: 10px; flex: 1; outline: none; }
+.comp-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 8px; color: #7fd4a0; font-size: 13px; font-weight: 600; padding: 10px 14px; cursor: pointer; white-space: nowrap; }
+.comp-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #1e1e1e; font-size: 13px; }
+.comp-row:last-child { border-bottom: none; }
+.comp-cat { color: #aaa; flex: 1; }
+.comp-val1 { color: #7fb4d4; font-weight: 600; width: 70px; text-align: right; }
+.comp-val2 { color: #d47fc0; font-weight: 600; width: 70px; text-align: right; }
+.comp-delta { font-size: 11px; width: 50px; text-align: right; }
+.comp-delta.up { color: #e07070; }
+.comp-delta.down { color: #7fd4a0; }
+.comp-delta.flat { color: #555; }
+.comp-totals { display: flex; justify-content: space-between; background: #111; border-radius: 10px; padding: 12px; margin-top: 10px; }
+.comp-total-item { text-align: center; }
+.comp-total-label { color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.comp-total-val { font-size: 16px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -158,32 +200,28 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
   <div class="offline-banner" id="offline-banner">⚠️ Sin conexión — mostrando último dato guardado</div>
 
-  <!-- Month selector (visible en todas las páginas) -->
+  <!-- Month selector -->
   <div class="month-bar">
     <label>Mes</label>
     <select class="month-select" id="month-select" onchange="onMesChange()">
-      <option value="1">Enero</option>
-      <option value="2">Febrero</option>
-      <option value="3">Marzo</option>
-      <option value="4">Abril</option>
-      <option value="5">Mayo</option>
-      <option value="6">Junio</option>
-      <option value="7">Julio</option>
-      <option value="8">Agosto</option>
-      <option value="9">Septiembre</option>
-      <option value="10">Octubre</option>
-      <option value="11">Noviembre</option>
-      <option value="12">Diciembre</option>
+      <option value="1">Enero</option><option value="2">Febrero</option>
+      <option value="3">Marzo</option><option value="4">Abril</option>
+      <option value="5">Mayo</option><option value="6">Junio</option>
+      <option value="7">Julio</option><option value="8">Agosto</option>
+      <option value="9">Septiembre</option><option value="10">Octubre</option>
+      <option value="11">Noviembre</option><option value="12">Diciembre</option>
     </select>
     <span class="month-arrow">▾</span>
   </div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('consultas')">Consultas</div>
+    <div class="tab" onclick="switchTab('presupuestos')">🎯 Presupuesto</div>
     <div class="tab" onclick="switchTab('graficos')">Gráficos</div>
+    <div class="tab" onclick="switchTab('historico')">📈 Histórico</div>
     <div class="tab" onclick="switchTab('registrar')">Registrar</div>
     <div class="tab" onclick="switchTab('historial')">Historial</div>
-    <div class="tab" onclick="switchTab('proyeccion')">📈 Proyección</div>
+    <div class="tab" onclick="switchTab('proyeccion')">Proyección</div>
   </div>
 
   <!-- CONSULTAS -->
@@ -235,16 +273,20 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div class="result-header" id="result-header">Resultado</div>
       <div class="result-body" id="result-body"></div>
     </div>
-    <!-- Panel especial de suscripciones -->
     <div class="result" id="result-subs" style="display:none;">
       <div class="result-header">Suscripciones activas</div>
       <div class="subs-wrap" id="subs-body"></div>
     </div>
   </div>
 
+  <!-- PRESUPUESTOS -->
+  <div class="page" id="page-presupuestos">
+    <div class="pres-aviso" id="pres-aviso" style="display:none"></div>
+    <div id="pres-lista"><p style="color:#555;font-size:13px;">Cargando presupuestos...</p></div>
+  </div>
+
   <!-- GRÁFICOS -->
   <div class="page" id="page-graficos">
-    <!-- Barra de sueldo -->
     <div class="budget-bar-wrap">
       <div class="budget-bar-header">
         <span class="budget-bar-label">Sueldo vs Gastos</span>
@@ -258,7 +300,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <span class="budget-bar-left" id="budget-left">Disponible: —</span>
       </div>
     </div>
-
     <div class="chart-container">
       <div class="chart-title">Gastos por categoría</div>
       <canvas id="donaChart" height="260"></canvas>
@@ -268,14 +309,57 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </div>
   </div>
 
+  <!-- HISTÓRICO -->
+  <div class="page" id="page-historico">
+    <div class="hist-toggle">
+      <div class="hist-toggle-btn active" id="htog-historico" onclick="setHistTab('historico')">📈 Balance histórico</div>
+      <div class="hist-toggle-btn" id="htog-comparar" onclick="setHistTab('comparar')">🔀 Comparar meses</div>
+    </div>
+
+    <!-- Sub-panel: balance histórico -->
+    <div id="hist-panel-historico">
+      <div class="chart-container">
+        <div class="chart-title">Balance neto mensual</div>
+        <canvas id="historicoChart" height="220"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Ingresos vs Egresos</div>
+        <canvas id="historicoBarChart" height="220"></canvas>
+      </div>
+      <div id="hist-resumen-lista"></div>
+    </div>
+
+    <!-- Sub-panel: comparar meses -->
+    <div id="hist-panel-comparar" style="display:none">
+      <div class="comp-selector">
+        <select id="comp-mes1">
+          <option value="1">Enero</option><option value="2">Febrero</option>
+          <option value="3">Marzo</option><option value="4">Abril</option>
+          <option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option>
+          <option value="9">Septiembre</option><option value="10">Octubre</option>
+          <option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <select id="comp-mes2">
+          <option value="1">Enero</option><option value="2">Febrero</option>
+          <option value="3">Marzo</option><option value="4">Abril</option>
+          <option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option>
+          <option value="9">Septiembre</option><option value="10">Octubre</option>
+          <option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <button class="comp-btn" onclick="ejecutarComparar()">Ver</button>
+      </div>
+      <div id="comp-resultado"></div>
+    </div>
+  </div>
+
   <!-- REGISTRAR -->
   <div class="page" id="page-registrar">
-    <!-- Toggle gasto / ingreso -->
     <div class="reg-toggle">
       <div class="reg-toggle-btn active-expense" id="toggle-gasto" onclick="setTipoReg('gasto')">📉 Gasto</div>
       <div class="reg-toggle-btn" id="toggle-ingreso" onclick="setTipoReg('ingreso')">📈 Ingreso</div>
     </div>
-
     <div class="form-field">
       <label>Fecha</label>
       <input type="date" id="reg-fecha" />
@@ -284,8 +368,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <label>Monto ($)</label>
       <input type="text" id="reg-monto" placeholder="0.00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" />
     </div>
-
-    <!-- Campos solo para gasto -->
     <div id="campos-gasto">
       <div class="form-field">
         <label>Categoría</label>
@@ -313,8 +395,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </div>
       </div>
     </div>
-
-    <!-- Campos solo para ingreso -->
     <div id="campos-ingreso" style="display:none;">
       <div class="form-field">
         <label>Fuente</label>
@@ -328,7 +408,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </select>
       </div>
     </div>
-
     <div class="form-field">
       <label>Descripción</label>
       <input type="text" id="reg-desc" placeholder="ej: taxi, almuerzo, sueldo mensual..." />
@@ -354,25 +433,21 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <p style="color:#555; font-size:13px;">Cargando proyección...</p>
     </div>
     <div id="proy-contenido" style="display:none">
-      <!-- Ritmo diario -->
       <div class="proy-card">
         <div class="proy-label">Ritmo de gasto diario</div>
         <div class="proy-valor" id="proy-diario">—</div>
         <div class="proy-sub" id="proy-dias-trans"></div>
       </div>
-      <!-- Proyección fin de mes -->
       <div class="proy-card">
         <div class="proy-label">Proyección a fin de mes</div>
         <div class="proy-valor" id="proy-total-mes">—</div>
         <div class="proy-sub" id="proy-total-sub"></div>
       </div>
-      <!-- Disponible al ritmo actual -->
       <div class="proy-card" id="proy-resultado-card">
         <div class="proy-label">Disponible estimado al fin de mes</div>
         <div class="proy-valor" id="proy-disponible">—</div>
         <div class="proy-sub" id="proy-disponible-sub"></div>
       </div>
-      <!-- Barra de progreso del mes -->
       <div class="proy-card">
         <div class="proy-label" style="margin-bottom:10px;">Avance del mes</div>
         <div class="budget-bar-track">
@@ -383,7 +458,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <span style="color:#888;" id="proy-dias-rest"></span>
         </div>
       </div>
-      <!-- Desglose por categoría con proyección -->
       <div class="proy-card">
         <div class="proy-label" style="margin-bottom:12px;">Proyección por categoría</div>
         <div id="proy-cats"></div>
@@ -397,15 +471,17 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 <script>
 const CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta"];
 const METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer BP"];
+const MESES_LABEL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
 let selectedCat = '';
 let selectedMet = '';
 let chartInstance = null;
-let tipoReg = 'gasto'; // 'gasto' | 'ingreso'
-
-// Mes seleccionado (número 1-12)
+let historicoLineChart = null;
+let historicoBarChart = null;
+let tipoReg = 'gasto';
 let mesSeleccionado = new Date().getMonth() + 1;
+let histTabActivo = 'historico';
 
 if (scriptUrl) {
   document.getElementById('url-input').value = scriptUrl;
@@ -426,59 +502,292 @@ function mostrarApp() {
   document.getElementById('status').innerHTML = '<span class="connected">Conectado</span>';
   const hoy = new Date();
   document.getElementById('reg-fecha').value = hoy.toISOString().split('T')[0];
-  // Set month selector
   mesSeleccionado = hoy.getMonth() + 1;
   document.getElementById('month-select').value = mesSeleccionado;
+  // Pre-populate comparar selects with last two months
+  const m1 = mesSeleccionado;
+  const m2 = m1 > 1 ? m1 - 1 : 12;
+  document.getElementById('comp-mes1').value = m1;
+  document.getElementById('comp-mes2').value = m2;
 }
 
 function onMesChange() {
   mesSeleccionado = parseInt(document.getElementById('month-select').value);
-  // Refrescar tab activo si es gráficos
-  const activeTab = document.querySelector('.tab.active');
-  if (activeTab) {
-    const tabs = ['consultas','graficos','registrar','historial'];
-    const idx = [...document.querySelectorAll('.tab')].indexOf(activeTab);
-    if (tabs[idx] === 'graficos') cargarGrafico();
-  }
-  mostrarToast('Mes: ' + document.getElementById('month-select').options[document.getElementById('month-select').selectedIndex].text);
+  // Refrescar tab activo
+  const activeTabEl = document.querySelector('.tab.active');
+  const allTabs = [...document.querySelectorAll('.tab')];
+  const tabNames = ['consultas','presupuestos','graficos','historico','registrar','historial','proyeccion'];
+  const idx = allTabs.indexOf(activeTabEl);
+  const tabActivo = tabNames[idx];
+  if (tabActivo === 'graficos') cargarGrafico();
+  if (tabActivo === 'presupuestos') cargarPresupuestos();
+  mostrarToast('Mes: ' + MESES_LABEL[mesSeleccionado - 1]);
 }
 
 function switchTab(tab) {
+  const tabNames = ['consultas','presupuestos','graficos','historico','registrar','historial','proyeccion'];
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['consultas','graficos','registrar','historial','proyeccion'][i] === tab);
+    t.classList.toggle('active', tabNames[i] === tab);
   });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + tab).classList.add('active');
   if (tab === 'graficos') cargarGrafico();
   if (tab === 'historial') cargarHistorial();
   if (tab === 'proyeccion') cargarProyeccion();
+  if (tab === 'presupuestos') cargarPresupuestos();
+  if (tab === 'historico') cargarHistorico();
 }
 
-// ── BÚSQUEDA EN HISTORIAL ────────────────────────────────────────────────────
-let historialData = []; // copia en memoria para filtrar sin red
+// ── PRESUPUESTOS ────────────────────────────────────────────
+async function cargarPresupuestos() {
+  const lista = document.getElementById('pres-lista');
+  const aviso = document.getElementById('pres-aviso');
+  lista.innerHTML = '<p style="color:#555;font-size:13px;">Cargando...</p>';
+  aviso.style.display = 'none';
+
+  let data = null;
+  const cached = leerCache('presupuestos');
+
+  function renderPresupuestos(items, fromCache, ts) {
+    if (items.error) {
+      lista.innerHTML = `<div class="pres-aviso" style="display:block">
+        ⚠️ ${items.error}<br><br>
+        Crea la hoja <strong>Config_Presupuestos</strong> en tu Excel con las columnas:<br>
+        A: Categoría &nbsp;|&nbsp; B: Límite mensual ($) &nbsp;|&nbsp; C: Icono (opcional)
+      </div>`;
+      return;
+    }
+    if (!items.length) {
+      lista.innerHTML = '<p style="color:#555;font-size:13px;">No hay presupuestos configurados.</p>';
+      return;
+    }
+
+    const badge = fromCache ? `<div style="margin-bottom:10px"><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
+
+    // Alertas
+    const alertas = items.filter(p => p.pct >= 80);
+    if (alertas.length) {
+      aviso.style.display = 'block';
+      aviso.innerHTML = '⚠️ ' + alertas.map(a =>
+        `<strong>${a.categoria}</strong> al ${a.pct}% del límite`
+      ).join(' · ');
+    }
+
+    lista.innerHTML = badge + items.map(p => {
+      const pctDisplay = Math.min(p.pct, 100);
+      const colorClass = p.pct >= 100 ? 'danger' : p.pct >= 80 ? 'warn' : 'ok';
+      const restante = p.limite - p.gastado;
+      return `
+      <div class="pres-item">
+        <div class="pres-header">
+          <span class="pres-nombre">${p.icono} ${p.categoria}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="pres-nums">$<strong>${p.gastado}</strong> / $${p.limite}</span>
+            <span class="pres-pct ${colorClass}">${p.pct}%</span>
+          </div>
+        </div>
+        <div class="pres-track">
+          <div class="pres-fill ${colorClass}" style="width:${pctDisplay}%"></div>
+        </div>
+        <div class="pres-sub">
+          <span class="pres-gastado">Gastado: $${p.gastado}</span>
+          <span class="pres-restante ${restante < 0 ? 'negativo' : ''}">${restante >= 0 ? 'Restante: $' + restante : 'Excedido: $' + Math.abs(restante)}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  if (cached) renderPresupuestos(cached.data, true, cached.ts);
+
+  try {
+    const res = await fetch(urlConMes('presupuestos'), { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('presupuestos', data);
+    renderPresupuestos(data, false, null);
+    mostrarOfflineBanner(false);
+  } catch(e) {
+    if (!cached) lista.innerHTML = '<p class="error">Sin conexión y sin datos guardados.</p>';
+    else mostrarOfflineBanner(true);
+  }
+}
+
+// ── HISTÓRICO ────────────────────────────────────────────────
+function setHistTab(tab) {
+  histTabActivo = tab;
+  document.getElementById('htog-historico').className = 'hist-toggle-btn' + (tab === 'historico' ? ' active' : '');
+  document.getElementById('htog-comparar').className = 'hist-toggle-btn' + (tab === 'comparar' ? ' active' : '');
+  document.getElementById('hist-panel-historico').style.display = tab === 'historico' ? 'block' : 'none';
+  document.getElementById('hist-panel-comparar').style.display = tab === 'comparar' ? 'block' : 'none';
+}
+
+async function cargarHistorico() {
+  const cached = leerCache('historico');
+  if (cached) renderHistorico(cached.data);
+  try {
+    const res = await fetch(scriptUrl + '?cmd=historico&n=6', { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('historico', data);
+    renderHistorico(data);
+  } catch(e) {
+    if (!cached) document.getElementById('hist-resumen-lista').innerHTML = '<p class="error">Sin conexión.</p>';
+  }
+}
+
+function renderHistorico(data) {
+  const labels = data.map(d => d.label);
+  const ingresos = data.map(d => d.ingresos);
+  const egresos = data.map(d => d.egresos);
+  const balances = data.map(d => d.balance);
+  const colores = balances.map(b => b >= 0 ? '#7fd4a0' : '#e05252');
+
+  // Gráfico de línea — balance neto
+  if (historicoLineChart) historicoLineChart.destroy();
+  const ctx1 = document.getElementById('historicoChart').getContext('2d');
+  historicoLineChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Balance neto',
+        data: balances,
+        borderColor: '#7fd4a0',
+        backgroundColor: 'rgba(127,212,160,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: colores,
+        pointRadius: 5,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toFixed(2) } } },
+      scales: {
+        x: { ticks: { color: '#666', font: { size: 11 } }, grid: { color: '#1e1e1e' } },
+        y: { ticks: { color: '#666', font: { size: 11 }, callback: v => '$' + v }, grid: { color: '#1e1e1e' } }
+      }
+    }
+  });
+
+  // Gráfico de barras agrupadas — ingresos vs egresos
+  if (historicoBarChart) historicoBarChart.destroy();
+  const ctx2 = document.getElementById('historicoBarChart').getContext('2d');
+  historicoBarChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Ingresos', data: ingresos, backgroundColor: 'rgba(127,180,212,0.7)', borderRadius: 4 },
+        { label: 'Egresos',  data: egresos,  backgroundColor: 'rgba(224,112,112,0.7)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#888', font: { size: 11 } } }, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toFixed(2) } } },
+      scales: {
+        x: { ticks: { color: '#666', font: { size: 11 } }, grid: { color: '#1e1e1e' } },
+        y: { ticks: { color: '#666', font: { size: 11 }, callback: v => '$' + v }, grid: { color: '#1e1e1e' } }
+      }
+    }
+  });
+
+  // Tabla resumen debajo
+  const resumen = document.getElementById('hist-resumen-lista');
+  resumen.innerHTML = data.slice().reverse().map(d => {
+    const balClass = d.balance >= 0 ? 'color:#7fd4a0' : 'color:#e05252';
+    return `<div class="proy-cat-row">
+      <span class="proy-cat-nombre" style="font-weight:600;color:#e0e0e0;">${d.label}</span>
+      <span class="proy-cat-nums">
+        <span style="color:#7fb4d4;margin-right:8px;">↑$${d.ingresos}</span>
+        <span style="color:#e07070;margin-right:8px;">↓$${d.egresos}</span>
+        <span style="${balClass};font-weight:700;">${d.balance >= 0 ? '+' : ''}$${d.balance}</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+async function ejecutarComparar() {
+  const mes1 = document.getElementById('comp-mes1').value;
+  const mes2 = document.getElementById('comp-mes2').value;
+  const resultado = document.getElementById('comp-resultado');
+  resultado.innerHTML = '<p style="color:#555;font-size:13px;">Comparando...</p>';
+
+  try {
+    const url = scriptUrl + '?cmd=comparar&mes1=' + mes1 + '&mes2=' + mes2;
+    const res = await fetch(url, { redirect: 'follow' });
+    const data = await res.json();
+    renderComparar(data);
+  } catch(e) {
+    resultado.innerHTML = '<p class="error">Error al comparar.</p>';
+  }
+}
+
+function renderComparar(data) {
+  const resultado = document.getElementById('comp-resultado');
+  const cats = data.categorias;
+
+  const filas = cats.map(cat => {
+    const v1 = data.mes1.cats[cat] || 0;
+    const v2 = data.mes2.cats[cat] || 0;
+    if (v1 === 0 && v2 === 0) return '';
+    const delta = v1 - v2;
+    const deltaClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+    const deltaStr = delta > 0 ? '+$' + delta.toFixed(2) : delta < 0 ? '-$' + Math.abs(delta).toFixed(2) : '—';
+    return `<div class="comp-row">
+      <span class="comp-cat">${cat}</span>
+      <span class="comp-val1">$${v1.toFixed(2)}</span>
+      <span class="comp-val2">$${v2.toFixed(2)}</span>
+      <span class="comp-delta ${deltaClass}">${deltaStr}</span>
+    </div>`;
+  }).join('');
+
+  const delta = data.mes1.total - data.mes2.total;
+  const deltaClass = delta > 0 ? 'color:#e07070' : 'color:#7fd4a0';
+
+  resultado.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:10px;font-size:11px;color:#555;text-align:right;">
+      <span style="flex:1;text-align:left;">Categoría</span>
+      <span style="width:70px;color:#7fb4d4;font-weight:600;">${data.mes1.label}</span>
+      <span style="width:70px;color:#d47fc0;font-weight:600;">${data.mes2.label}</span>
+      <span style="width:50px;">Δ</span>
+    </div>
+    ${filas}
+    <div class="comp-totals">
+      <div class="comp-total-item">
+        <div class="comp-total-label">${data.mes1.label}</div>
+        <div class="comp-total-val" style="color:#7fb4d4;">$${data.mes1.total.toFixed(2)}</div>
+      </div>
+      <div class="comp-total-item">
+        <div class="comp-total-label">Diferencia</div>
+        <div class="comp-total-val" style="${deltaClass}">${delta > 0 ? '+' : ''}$${delta.toFixed(2)}</div>
+      </div>
+      <div class="comp-total-item">
+        <div class="comp-total-label">${data.mes2.label}</div>
+        <div class="comp-total-val" style="color:#d47fc0;">$${data.mes2.total.toFixed(2)}</div>
+      </div>
+    </div>`;
+}
+
+// ── BÚSQUEDA EN HISTORIAL ────────────────────────────────────
+let historialData = [];
 
 function filtrarHistorial() {
   const q = document.getElementById('search-input').value.toLowerCase().trim();
   const clearBtn = document.getElementById('search-clear');
   const countEl = document.getElementById('search-count');
   clearBtn.style.display = q ? 'block' : 'none';
-
   if (!q) {
     countEl.style.display = 'none';
     document.querySelectorAll('.historial-item').forEach(el => el.style.display = 'block');
     return;
   }
-
   let visibles = 0;
   document.querySelectorAll('.historial-item').forEach((el, i) => {
-    const r = historialData[historialData.length - 1 - i]; // orden inverso igual que render
+    const r = historialData[historialData.length - 1 - i];
     if (!r) return;
     const texto = (r.descripcion + ' ' + r.categoria + ' ' + r.monto + ' ' + (r.metodo||'')).toLowerCase();
     const match = texto.includes(q);
     el.style.display = match ? 'block' : 'none';
     if (match) visibles++;
   });
-
   countEl.style.display = 'block';
   countEl.textContent = visibles + ' resultado' + (visibles !== 1 ? 's' : '');
 }
@@ -488,130 +797,68 @@ function limpiarBusqueda() {
   filtrarHistorial();
 }
 
-// ── PROYECCIÓN ───────────────────────────────────────────────────────────────
+// ── PROYECCIÓN ────────────────────────────────────────────────
 async function cargarProyeccion() {
   document.getElementById('proy-loading').style.display = 'block';
   document.getElementById('proy-contenido').style.display = 'none';
-
-  // Necesitamos: ingresos (B2), egresos (B3), categorías (G4:G9), y el mes seleccionado
-  // Usamos caché de chart si existe, y pedimos resumen si no
   let sueldo = 0, gastoActual = 0, cats = [];
-
   const cachedChart = leerCache('chart');
   if (cachedChart && cachedChart.data && cachedChart.data.gastos) {
     sueldo = cachedChart.data.sueldo || 0;
     cats = cachedChart.data.gastos;
     gastoActual = cats.reduce((a,b) => a + b.valor, 0);
   }
-
-  // Intentar actualizar desde red
   try {
     const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
     const data = await res.json();
     guardarCache('chart', data);
-    if (data.gastos) {
-      sueldo = data.sueldo || 0;
-      cats = data.gastos;
-      gastoActual = cats.reduce((a,b) => a + b.valor, 0);
-    }
-  } catch(e) { /* usar caché si falló */ }
-
+    if (data.gastos) { sueldo = data.sueldo || 0; cats = data.gastos; gastoActual = cats.reduce((a,b) => a + b.valor, 0); }
+  } catch(e) {}
   if (sueldo === 0 && gastoActual === 0) {
-    document.getElementById('proy-loading').innerHTML = '<p style="color:#666;font-size:13px;">Sin datos disponibles. Abrí Gráficos primero para cargar los datos.</p>';
+    document.getElementById('proy-loading').innerHTML = '<p style="color:#666;font-size:13px;">Sin datos disponibles.</p>';
     return;
   }
-
-  // Calcular días
   const hoy = new Date();
   const esMesActual = (mesSeleccionado - 1) === hoy.getMonth() && hoy.getFullYear() === new Date().getFullYear();
   const diasEnMes = new Date(hoy.getFullYear(), mesSeleccionado, 0).getDate();
   const diaActual = esMesActual ? hoy.getDate() : diasEnMes;
   const diasRestantes = diasEnMes - diaActual;
   const pctMes = Math.round((diaActual / diasEnMes) * 100);
-
   const gastoDiario = diaActual > 0 ? gastoActual / diaActual : 0;
   const proyeccionFin = gastoDiario * diasEnMes;
   const disponibleEstimado = sueldo - proyeccionFin;
-
-  // Render
   document.getElementById('proy-loading').style.display = 'none';
   document.getElementById('proy-contenido').style.display = 'block';
-
-  // Ritmo diario
   document.getElementById('proy-diario').textContent = '$' + gastoDiario.toFixed(2) + '/día';
-  document.getElementById('proy-dias-trans').textContent =
-    'Basado en ' + diaActual + ' día' + (diaActual !== 1 ? 's' : '') + ' transcurrido' + (diaActual !== 1 ? 's' : '');
-
-  // Proyección fin de mes
+  document.getElementById('proy-dias-trans').textContent = 'Basado en ' + diaActual + ' día' + (diaActual !== 1 ? 's' : '') + ' transcurrido' + (diaActual !== 1 ? 's' : '');
   const pEl = document.getElementById('proy-total-mes');
   pEl.textContent = '$' + proyeccionFin.toFixed(2);
   pEl.className = 'proy-valor' + (proyeccionFin > sueldo ? ' danger' : proyeccionFin > sueldo * 0.85 ? ' warn' : ' ok');
-  document.getElementById('proy-total-sub').textContent =
-    'Gastado hasta hoy: $' + gastoActual.toFixed(2) + ' · Proyectado: $' + proyeccionFin.toFixed(2);
-
-  // Disponible estimado
+  document.getElementById('proy-total-sub').textContent = 'Gastado hasta hoy: $' + gastoActual.toFixed(2) + ' · Proyectado: $' + proyeccionFin.toFixed(2);
   const dEl = document.getElementById('proy-disponible');
   dEl.textContent = '$' + Math.abs(disponibleEstimado).toFixed(2) + (disponibleEstimado < 0 ? ' en rojo' : ' sobrante');
   dEl.className = 'proy-valor' + (disponibleEstimado < 0 ? ' danger' : disponibleEstimado < sueldo * 0.1 ? ' warn' : ' ok');
-  document.getElementById('proy-disponible-sub').textContent =
-    sueldo > 0 ? 'Ingresos $' + sueldo.toFixed(2) + ' − proyección $' + proyeccionFin.toFixed(2) : 'Sin dato de ingresos';
-
-  // Barra de avance del mes
+  document.getElementById('proy-disponible-sub').textContent = sueldo > 0 ? 'Ingresos $' + sueldo.toFixed(2) + ' − proyección $' + proyeccionFin.toFixed(2) : 'Sin dato de ingresos';
   const fill = document.getElementById('proy-mes-fill');
   fill.style.width = pctMes + '%';
   fill.className = 'budget-bar-fill' + (pctMes >= 90 ? ' danger' : pctMes >= 70 ? ' warn' : '');
   document.getElementById('proy-dia-actual').textContent = 'Día ' + diaActual + ' de ' + diasEnMes;
   document.getElementById('proy-dias-rest').textContent = diasRestantes + ' día' + (diasRestantes !== 1 ? 's' : '') + ' restante' + (diasRestantes !== 1 ? 's' : '');
-
-  // Proyección por categoría
-  const catsHtml = cats.map(c => {
+  document.getElementById('proy-cats').innerHTML = cats.map(c => {
     const proy = diaActual > 0 ? (c.valor / diaActual) * diasEnMes : 0;
-    return `<div class="proy-cat-row">
-      <span class="proy-cat-nombre">${c.nombre}</span>
-      <span class="proy-cat-nums">
-        <span class="proy-cat-actual">$${c.valor.toFixed(2)}</span>
-        <span class="proy-cat-proyectado"> → $${proy.toFixed(2)}</span>
-      </span>
-    </div>`;
+    return `<div class="proy-cat-row"><span class="proy-cat-nombre">${c.nombre}</span><span class="proy-cat-nums"><span class="proy-cat-actual">$${c.valor.toFixed(2)}</span><span class="proy-cat-proyectado"> → $${proy.toFixed(2)}</span></span></div>`;
   }).join('');
-  document.getElementById('proy-cats').innerHTML = catsHtml;
 }
 
-// ── CACHÉ ────────────────────────────────────────────────────────────────────
+// ── CACHÉ ────────────────────────────────────────────────────
 function cacheKey(cmd) { return 'cache_' + cmd + '_mes' + mesSeleccionado; }
+function guardarCache(cmd, data) { try { localStorage.setItem(cacheKey(cmd), JSON.stringify({ ts: Date.now(), data })); } catch(e) {} }
+function leerCache(cmd) { try { const raw = localStorage.getItem(cacheKey(cmd)); if (!raw) return null; return JSON.parse(raw); } catch(e) { return null; } }
+function formatTs(ts) { const d = new Date(ts); return d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0'); }
+function mostrarOfflineBanner(visible) { document.getElementById('offline-banner').className = 'offline-banner' + (visible ? ' visible' : ''); }
+function urlConMes(cmd) { return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado; }
 
-function guardarCache(cmd, data) {
-  try {
-    localStorage.setItem(cacheKey(cmd), JSON.stringify({ ts: Date.now(), data }));
-  } catch(e) {}
-}
-
-function leerCache(cmd) {
-  try {
-    const raw = localStorage.getItem(cacheKey(cmd));
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) { return null; }
-}
-
-function formatTs(ts) {
-  const d = new Date(ts);
-  return d.getDate().toString().padStart(2,'0') + '/' +
-    (d.getMonth()+1).toString().padStart(2,'0') + ' ' +
-    d.getHours().toString().padStart(2,'0') + ':' +
-    d.getMinutes().toString().padStart(2,'0');
-}
-
-function mostrarOfflineBanner(visible) {
-  document.getElementById('offline-banner').className = 'offline-banner' + (visible ? ' visible' : '');
-}
-
-// ── URL helper ───────────────────────────────────────────────────────────────
-function urlConMes(cmd) {
-  return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado;
-}
-
-// ── CONSULTAS con caché ──────────────────────────────────────────────────────
+// ── CONSULTAS ────────────────────────────────────────────────
 async function q(cmd) {
   const result = document.getElementById('result');
   const body = document.getElementById('result-body');
@@ -619,16 +866,10 @@ async function q(cmd) {
   document.getElementById('result-subs').style.display = 'none';
   result.className = 'result visible';
   header.textContent = cmd;
-
-  // Mostrar caché inmediatamente si existe
   const cached = leerCache(cmd);
-  if (cached) {
-    body.innerHTML = `<span class="cache-badge">📦 guardado ${formatTs(cached.ts)}</span>\n${cached.data}`;
-  } else {
-    body.innerHTML = '<span class="loading">Cargando...</span>';
-  }
+  if (cached) { body.innerHTML = `<span class="cache-badge">📦 guardado ${formatTs(cached.ts)}</span>\n${cached.data}`; }
+  else { body.innerHTML = '<span class="loading">Cargando...</span>'; }
   result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
   try {
     const res = await fetch(urlConMes(cmd), { redirect: 'follow' });
     const txt = await res.text();
@@ -636,78 +877,50 @@ async function q(cmd) {
     body.textContent = txt;
     mostrarOfflineBanner(false);
   } catch(e) {
-    if (cached) {
-      mostrarOfflineBanner(true);
-    } else {
-      body.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
-    }
+    if (cached) mostrarOfflineBanner(true);
+    else body.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
   }
 }
 
-// ── SUSCRIPCIONES con caché ──────────────────────────────────────────────────
 async function consultarSuscripciones() {
   const panel = document.getElementById('result-subs');
   const body = document.getElementById('subs-body');
   document.getElementById('result').className = 'result';
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
   function renderSubs(items, fromCache, ts) {
     const badge = fromCache ? `<div><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
-    if (items.length === 0) {
-      body.innerHTML = badge + '<span style="color:#555;font-size:13px;">Sin suscripciones.</span>';
-    } else {
-      body.innerHTML = badge + '<div class="subs-wrap">' + items.map(s => `<span class="sub-bubble">${s}</span>`).join('') + '</div>';
-    }
+    if (items.length === 0) { body.innerHTML = badge + '<span style="color:#555;font-size:13px;">Sin suscripciones.</span>'; }
+    else { body.innerHTML = badge + '<div class="subs-wrap">' + items.map(s => `<span class="sub-bubble">${s}</span>`).join('') + '</div>'; }
   }
-
   const cached = leerCache('suscripciones');
-  if (cached) {
-    renderSubs(cached.data, true, cached.ts);
-  } else {
-    body.innerHTML = '<span class="loading" style="font-size:13px;color:#444;">Cargando...</span>';
-  }
-
+  if (cached) renderSubs(cached.data, true, cached.ts);
+  else body.innerHTML = '<span class="loading" style="font-size:13px;color:#444;">Cargando...</span>';
   try {
     const res = await fetch(urlConMes('suscripciones'), { redirect: 'follow' });
     const txt = await res.text();
     let items = [];
-    try {
-      const json = JSON.parse(txt);
-      items = Array.isArray(json) ? json : [txt];
-    } catch {
-      items = txt.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
-    }
+    try { const json = JSON.parse(txt); items = Array.isArray(json) ? json : [txt]; } catch { items = txt.split(/[\n,]+/).map(s => s.trim()).filter(Boolean); }
     guardarCache('suscripciones', items);
     renderSubs(items, false, null);
     mostrarOfflineBanner(false);
   } catch(e) {
-    if (cached) {
-      mostrarOfflineBanner(true);
-    } else {
-      body.innerHTML = '<span class="error" style="font-size:13px;">Sin conexión y sin datos guardados.</span>';
-    }
+    if (cached) mostrarOfflineBanner(true);
+    else body.innerHTML = '<span class="error" style="font-size:13px;">Sin conexión y sin datos guardados.</span>';
   }
 }
 
-// ── GRÁFICO con caché ────────────────────────────────────────────────────────
+// ── GRÁFICO ───────────────────────────────────────────────────
 async function cargarGrafico() {
   const legend = document.getElementById('legend-body');
   const colores = ['#4e9a6f','#e8a838','#e05252','#5b8fe8','#9b6fe8','#e87d5b','#50b4b4','#d47fc0'];
-
   function renderGrafico(data, fromCache, ts) {
-    let categorias = [];
-    let sueldo = 0;
-    if (Array.isArray(data)) {
-      categorias = data;
-    } else if (data.gastos) {
-      categorias = data.gastos;
-      sueldo = data.sueldo || 0;
-    }
+    let categorias = [], sueldo = 0;
+    if (Array.isArray(data)) categorias = data;
+    else if (data.gastos) { categorias = data.gastos; sueldo = data.sueldo || 0; }
     const labels = categorias.map(d => d.nombre);
     const valores = categorias.map(d => d.valor);
     const total = valores.reduce((a,b) => a+b, 0);
-
     if (sueldo > 0) {
       const pct = Math.min((total / sueldo) * 100, 100);
       const fill = document.getElementById('budget-fill');
@@ -716,42 +929,22 @@ async function cargarGrafico() {
       document.getElementById('budget-nums').innerHTML = `<strong>$${total.toFixed(2)}</strong> / $${sueldo.toFixed(2)}`;
       document.getElementById('budget-spent').textContent = `Gastado: $${total.toFixed(2)} (${Math.round(pct)}%)`;
       document.getElementById('budget-left').textContent = `Disponible: $${(sueldo - total).toFixed(2)}`;
-    } else {
-      document.getElementById('budget-nums').textContent = 'Sin dato de sueldo';
-    }
-
+    } else { document.getElementById('budget-nums').textContent = 'Sin dato de sueldo'; }
     if (chartInstance) chartInstance.destroy();
     const ctx = document.getElementById('donaChart').getContext('2d');
     chartInstance = new Chart(ctx, {
       type: 'doughnut',
       data: { labels, datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0 }] },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.toFixed(2) + ' (' + Math.round(ctx.parsed/total*100) + '%)' } }
-        },
-        cutout: '60%'
-      }
+      options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.toFixed(2) + ' (' + Math.round(ctx.parsed/total*100) + '%)' } } }, cutout: '60%' }
     });
-
     const badge = fromCache ? `<div><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
     legend.innerHTML = badge + categorias.map((d,i) =>
       `<div class="legend-item"><span class="legend-dot" style="background:${colores[i]}"></span>${d.nombre}: <strong style="color:#e0e0e0;margin-left:4px;">$${d.valor}</strong> <span style="color:#555;">(${Math.round(d.valor/total*100)}%)</span></div>`
     ).join('');
   }
-
-  // Mostrar caché mientras carga
   const cached = leerCache('chart');
-  if (cached) {
-    renderGrafico(cached.data, true, cached.ts);
-  } else {
-    legend.textContent = 'Cargando datos...';
-    document.getElementById('budget-nums').textContent = '—';
-    document.getElementById('budget-fill').style.width = '0%';
-    document.getElementById('budget-spent').textContent = 'Gastado: —';
-    document.getElementById('budget-left').textContent = 'Disponible: —';
-  }
-
+  if (cached) renderGrafico(cached.data, true, cached.ts);
+  else { legend.textContent = 'Cargando datos...'; document.getElementById('budget-nums').textContent = '—'; document.getElementById('budget-fill').style.width = '0%'; document.getElementById('budget-spent').textContent = 'Gastado: —'; document.getElementById('budget-left').textContent = 'Disponible: —'; }
   try {
     const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
     const data = await res.json();
@@ -759,30 +952,22 @@ async function cargarGrafico() {
     renderGrafico(data, false, null);
     mostrarOfflineBanner(false);
   } catch(e) {
-    if (cached) {
-      mostrarOfflineBanner(true);
-    } else {
-      legend.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
-    }
+    if (cached) mostrarOfflineBanner(true);
+    else legend.innerHTML = '<span class="error">Sin conexión y sin datos guardados.</span>';
   }
 }
 
-// ── HISTORIAL con caché ──────────────────────────────────────────────────────
+// ── HISTORIAL ─────────────────────────────────────────────────
 async function cargarHistorial() {
   const lista = document.getElementById('historial-lista');
-
   function renderHistorial(data, fromCache, ts) {
-    if (data.length === 0) {
-      lista.innerHTML = '<p style="color:#555; font-size:13px;">No hay registros.</p>';
-      return;
-    }
+    if (data.length === 0) { lista.innerHTML = '<p style="color:#555; font-size:13px;">No hay registros.</p>'; return; }
     const badge = fromCache ? `<div style="margin-bottom:10px;"><span class="cache-badge">📦 guardado ${formatTs(ts)}</span></div>` : '';
     lista.innerHTML = badge + data.map(r => {
       const esIngreso = r.tipo === 'ingreso' || (r.categoria && r.categoria.toLowerCase().includes('ingreso'));
       const montoClass = esIngreso ? 'ingreso' : 'gasto';
       const montoPrefix = esIngreso ? '+' : '-';
-      return `
-      <div class="historial-item" id="item-${r.fila}">
+      return `<div class="historial-item" id="item-${r.fila}">
         <div class="historial-vista">
           <div class="historial-info">
             <div class="historial-fecha">${r.fecha}</div>
@@ -798,12 +983,8 @@ async function cargarHistorial() {
         <div class="historial-form" id="form-${r.fila}">
           <input class="h-input" type="date" id="e-fecha-${r.fila}" value="${fechaAInput(r.fecha)}" />
           <input class="h-input" type="text" id="e-monto-${r.fila}" value="${r.monto}" inputmode="decimal" placeholder="Monto" />
-          <select class="h-select" id="e-cat-${r.fila}">
-            ${CATS.map(c => `<option value="${c}" ${c === r.categoria ? 'selected' : ''}>${c}</option>`).join('')}
-          </select>
-          <select class="h-select" id="e-met-${r.fila}">
-            ${METS.map(m => `<option value="${m}" ${m === (r.metodo||'') ? 'selected' : ''}>${m}</option>`).join('')}
-          </select>
+          <select class="h-select" id="e-cat-${r.fila}">${CATS.map(c => `<option value="${c}" ${c === r.categoria ? 'selected' : ''}>${c}</option>`).join('')}</select>
+          <select class="h-select" id="e-met-${r.fila}">${METS.map(m => `<option value="${m}" ${m === (r.metodo||'') ? 'selected' : ''}>${m}</option>`).join('')}</select>
           <input class="h-input" type="text" id="e-desc-${r.fila}" value="${r.descripcion}" placeholder="Descripción" />
           <div class="h-btns">
             <button class="save-edit-btn" onclick="guardarEdicion(${r.fila})">Guardar</button>
@@ -813,16 +994,9 @@ async function cargarHistorial() {
       </div>`;
     }).join('');
   }
-
-  // Mostrar caché mientras carga
   const cached = leerCache('historial');
-  if (cached) {
-    historialData = cached.data;
-    renderHistorial(cached.data, true, cached.ts);
-  } else {
-    lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
-  }
-
+  if (cached) { historialData = cached.data; renderHistorial(cached.data, true, cached.ts); }
+  else lista.innerHTML = '<p style="color:#555; font-size:13px;">Cargando...</p>';
   try {
     const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
     const data = await res.json();
@@ -831,23 +1005,13 @@ async function cargarHistorial() {
     renderHistorial(data, false, null);
     mostrarOfflineBanner(false);
   } catch(e) {
-    if (cached) {
-      mostrarOfflineBanner(true);
-    } else {
-      lista.innerHTML = '<p class="error">Sin conexión y sin datos guardados.</p>';
-    }
+    if (cached) mostrarOfflineBanner(true);
+    else lista.innerHTML = '<p class="error">Sin conexión y sin datos guardados.</p>';
   }
 }
 
-function fechaAInput(fecha) {
-  const partes = fecha.split('/');
-  const hoy = new Date();
-  return hoy.getFullYear() + '-' + partes[1] + '-' + partes[0];
-}
-
-function toggleEdit(fila) {
-  document.getElementById('form-' + fila).classList.toggle('visible');
-}
+function fechaAInput(fecha) { const partes = fecha.split('/'); const hoy = new Date(); return hoy.getFullYear() + '-' + partes[1] + '-' + partes[0]; }
+function toggleEdit(fila) { document.getElementById('form-' + fila).classList.toggle('visible'); }
 
 async function guardarEdicion(fila) {
   const fecha = document.getElementById('e-fecha-' + fila).value;
@@ -857,20 +1021,14 @@ async function guardarEdicion(fila) {
   const descripcion = document.getElementById('e-desc-' + fila).value.trim();
   if (!fecha || !monto || !categoria || !metodo || !descripcion) { mostrarToast('Completa todos los campos'); return; }
   const params = new URLSearchParams({ cmd: 'editar', fila, fecha, monto, categoria, metodo, descripcion });
-  try {
-    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-    mostrarToast(await res.text());
-    cargarHistorial();
-  } catch(e) { mostrarToast('Error al guardar'); }
+  try { const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' }); mostrarToast(await res.text()); cargarHistorial(); }
+  catch(e) { mostrarToast('Error al guardar'); }
 }
 
 async function eliminar(fila) {
   if (!confirm('¿Eliminar este registro?')) return;
-  try {
-    const res = await fetch(scriptUrl + '?cmd=eliminar&fila=' + fila, { redirect: 'follow' });
-    mostrarToast(await res.text());
-    document.getElementById('item-' + fila).remove();
-  } catch(e) { mostrarToast('Error al eliminar'); }
+  try { const res = await fetch(scriptUrl + '?cmd=eliminar&fila=' + fila, { redirect: 'follow' }); mostrarToast(await res.text()); document.getElementById('item-' + fila).remove(); }
+  catch(e) { mostrarToast('Error al eliminar'); }
 }
 
 function selectPill(el, type) {
@@ -883,27 +1041,13 @@ function selectPill(el, type) {
 
 function setTipoReg(tipo) {
   tipoReg = tipo;
-  const btnGasto = document.getElementById('toggle-gasto');
-  const btnIngreso = document.getElementById('toggle-ingreso');
-  const camposGasto = document.getElementById('campos-gasto');
-  const camposIngreso = document.getElementById('campos-ingreso');
-  const submitBtn = document.getElementById('submit-btn');
-
-  if (tipo === 'gasto') {
-    btnGasto.className = 'reg-toggle-btn active-expense';
-    btnIngreso.className = 'reg-toggle-btn';
-    camposGasto.style.display = 'block';
-    camposIngreso.style.display = 'none';
-    submitBtn.textContent = 'Registrar gasto';
-    submitBtn.className = 'submit-btn';
-  } else {
-    btnGasto.className = 'reg-toggle-btn';
-    btnIngreso.className = 'reg-toggle-btn active-income';
-    camposGasto.style.display = 'none';
-    camposIngreso.style.display = 'block';
-    submitBtn.textContent = 'Registrar ingreso';
-    submitBtn.className = 'submit-btn income-btn';
-  }
+  document.getElementById('toggle-gasto').className = 'reg-toggle-btn' + (tipo === 'gasto' ? ' active-expense' : '');
+  document.getElementById('toggle-ingreso').className = 'reg-toggle-btn' + (tipo === 'ingreso' ? ' active-income' : '');
+  document.getElementById('campos-gasto').style.display = tipo === 'gasto' ? 'block' : 'none';
+  document.getElementById('campos-ingreso').style.display = tipo === 'ingreso' ? 'block' : 'none';
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = tipo === 'gasto' ? 'Registrar gasto' : 'Registrar ingreso';
+  btn.className = 'submit-btn' + (tipo === 'ingreso' ? ' income-btn' : '');
 }
 
 async function registrar() {
@@ -911,45 +1055,25 @@ async function registrar() {
   const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
   const btn = document.getElementById('submit-btn');
-
   if (tipoReg === 'gasto') {
     if (!fecha || !monto || !selectedCat || !selectedMet || !desc) { mostrarToast('Completa todos los campos'); return; }
-    btn.textContent = 'Registrando...';
-    btn.disabled = true;
+    btn.textContent = 'Registrando...'; btn.disabled = true;
     const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
-    try {
-      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-      mostrarToast(await res.text());
-      document.getElementById('reg-monto').value = '';
-      document.getElementById('reg-desc').value = '';
-      document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
-      selectedCat = ''; selectedMet = '';
-    } catch(e) { mostrarToast('Error al registrar'); }
+    try { const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' }); mostrarToast(await res.text()); document.getElementById('reg-monto').value = ''; document.getElementById('reg-desc').value = ''; document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected')); selectedCat = ''; selectedMet = ''; }
+    catch(e) { mostrarToast('Error al registrar'); }
   } else {
     const fuente = document.getElementById('reg-fuente').value;
     if (!fecha || !monto || !fuente || !desc) { mostrarToast('Completa todos los campos'); return; }
-    btn.textContent = 'Registrando...';
-    btn.disabled = true;
+    btn.textContent = 'Registrando...'; btn.disabled = true;
     const params = new URLSearchParams({ cmd: 'registrar_ingreso', fecha, monto, fuente, descripcion: desc });
-    try {
-      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-      mostrarToast(await res.text());
-      document.getElementById('reg-monto').value = '';
-      document.getElementById('reg-desc').value = '';
-      document.getElementById('reg-fuente').value = '';
-    } catch(e) { mostrarToast('Error al registrar'); }
+    try { const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' }); mostrarToast(await res.text()); document.getElementById('reg-monto').value = ''; document.getElementById('reg-desc').value = ''; document.getElementById('reg-fuente').value = ''; }
+    catch(e) { mostrarToast('Error al registrar'); }
   }
-
   btn.textContent = tipoReg === 'gasto' ? 'Registrar gasto' : 'Registrar ingreso';
   btn.disabled = false;
 }
 
-function mostrarToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast visible';
-  setTimeout(() => t.className = 'toast', 2500);
-}
+function mostrarToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast visible'; setTimeout(() => t.className = 'toast', 2500); }
 </script>
 </body>
 </html>
