@@ -293,6 +293,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .offline-banner.visible { display: block; }
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a3a2a; border: 1px solid #2a5a3a; color: #7fd4a0; padding: 12px 24px; border-radius: 20px; font-size: 14px; display: none; z-index: 200; white-space: nowrap; }
 .toast.visible { display: block; }
+.cola-badge { position: fixed; bottom: 72px; right: 16px; background: #2a1800; border: 1px solid #5a3000; color: #e8a838; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; cursor: pointer; z-index: 150; display: none; -webkit-tap-highlight-color: transparent; }
+.cola-badge.visible { display: block; }
 
 /* Modal favoritos */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 80; display: none; align-items: flex-end; }
@@ -667,6 +669,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   </div>
 </div>
 
+<div class="cola-badge" id="cola-badge" onclick="reintentarCola()"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1368,36 +1371,99 @@ async function registrar() {
   const monto = document.getElementById('reg-monto').value.replace(',', '.');
   const desc = document.getElementById('reg-desc').value.trim();
   const btn = document.getElementById('submit-btn');
+
+  let params;
   if (tipoReg === 'gasto') {
     if (!fecha || !monto || !selectedCat || !selectedMet || !desc) { mostrarToast('Completa todos los campos'); return; }
-    btn.textContent = 'Registrando...'; btn.disabled = true;
-    const params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
-    try {
-      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-      const txt = await res.text();
-      mostrarToast(txt);
-      document.getElementById('reg-monto').value = '';
-      document.getElementById('reg-desc').value = '';
-      document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
-      selectedCat = ''; selectedMet = '';
-      document.getElementById('reg-pres-aviso').classList.remove('visible');
-    } catch(e) { mostrarToast('Error al registrar'); }
+    params = new URLSearchParams({ cmd: 'registrar', fecha, monto, categoria: selectedCat, metodo: selectedMet, descripcion: desc });
   } else {
     const fuente = document.getElementById('reg-fuente').value;
     if (!fecha || !monto || !fuente || !desc) { mostrarToast('Completa todos los campos'); return; }
-    btn.textContent = 'Registrando...'; btn.disabled = true;
-    const params = new URLSearchParams({ cmd: 'registrar_ingreso', fecha, monto, fuente, descripcion: desc });
-    try {
-      const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-      mostrarToast(await res.text());
-      document.getElementById('reg-monto').value = '';
-      document.getElementById('reg-desc').value = '';
-      document.getElementById('reg-fuente').value = '';
-    } catch(e) { mostrarToast('Error al registrar'); }
+    params = new URLSearchParams({ cmd: 'registrar_ingreso', fecha, monto, fuente, descripcion: desc });
   }
+
+  btn.textContent = 'Registrando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    limpiarFormRegistrar();
+  } catch(e) {
+    // Sin red: guardar en cola offline
+    encolarGasto(params.toString());
+    mostrarToast('📥 Sin conexión — guardado para enviar después');
+    limpiarFormRegistrar();
+  }
+
   btn.textContent = tipoReg === 'gasto' ? 'Registrar gasto' : 'Registrar ingreso';
   btn.disabled = false;
 }
+
+function limpiarFormRegistrar() {
+  document.getElementById('reg-monto').value = '';
+  document.getElementById('reg-desc').value = '';
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+  selectedCat = ''; selectedMet = '';
+  document.getElementById('reg-pres-aviso').classList.remove('visible');
+  if (document.getElementById('reg-fuente')) document.getElementById('reg-fuente').value = '';
+}
+
+// ── COLA OFFLINE ──────────────────────────────────────────
+// Cada ítem: { id, paramsStr, ts }
+function getCola() { try { return JSON.parse(localStorage.getItem('finanzas_cola') || '[]'); } catch { return []; } }
+function saveCola(cola) { try { localStorage.setItem('finanzas_cola', JSON.stringify(cola)); } catch(e) {} }
+
+function encolarGasto(paramsStr) {
+  const cola = getCola();
+  cola.push({ id: Date.now(), paramsStr, ts: new Date().toISOString() });
+  saveCola(cola);
+  actualizarBadgeCola();
+}
+
+function actualizarBadgeCola() {
+  const cola = getCola();
+  const badge = document.getElementById('cola-badge');
+  if (!badge) return;
+  if (cola.length > 0) {
+    badge.textContent = '📤 ' + cola.length + ' pendiente' + (cola.length > 1 ? 's' : '');
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+async function reintentarCola() {
+  const cola = getCola();
+  if (!cola.length) return;
+  mostrarToast('Enviando pendientes...');
+  const fallidos = [];
+  for (const item of cola) {
+    try {
+      const res = await fetch(scriptUrl + '?' + item.paramsStr, { redirect: 'follow' });
+      const txt = await res.text();
+      if (!txt.includes('✅')) fallidos.push(item); // si falla la respuesta, volver a cola
+    } catch(e) {
+      fallidos.push(item); // sin red, volver a cola
+    }
+  }
+  saveCola(fallidos);
+  actualizarBadgeCola();
+  if (fallidos.length === 0) {
+    mostrarToast('✅ ' + (cola.length) + ' gasto' + (cola.length > 1 ? 's enviados' : ' enviado'));
+  } else {
+    mostrarToast('⚠️ ' + fallidos.length + ' sin enviar — sin conexión');
+  }
+}
+
+// Reintentar automáticamente al recuperar conexión
+window.addEventListener('online', () => {
+  const cola = getCola();
+  if (cola.length > 0) reintentarCola();
+});
+
+// Mostrar badge al iniciar si hay pendientes
+window.addEventListener('load', actualizarBadgeCola);
 
 // ── HISTORIAL EDICIÓN ─────────────────────────────────────
 function fechaAInput(fecha) { const p = fecha.split('/'); return new Date().getFullYear() + '-' + p[1] + '-' + p[0]; }
