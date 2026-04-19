@@ -309,6 +309,28 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
 .modal-ok { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 10px; color: #7fd4a0; font-size: 14px; font-weight: 600; padding: 12px; flex: 1; cursor: pointer; }
 .modal-cancel { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; color: #888; font-size: 14px; padding: 12px; flex: 1; cursor: pointer; }
+
+/* ── DIFERIDOS ── */
+.dif-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.dif-item.completado { opacity: 0.5; }
+.dif-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.dif-nombre { font-size: 14px; font-weight: 600; color: #e0e0e0; }
+.dif-meta { font-size: 11px; color: #555; margin-top: 2px; }
+.dif-right { text-align: right; }
+.dif-cuotas { font-size: 18px; font-weight: 700; }
+.dif-cuotas.ok     { color: #7fd4a0; }
+.dif-cuotas.warn   { color: #e8a838; }
+.dif-cuotas.danger { color: #e05252; }
+.dif-track { background: #111; border-radius: 20px; height: 8px; overflow: hidden; margin-bottom: 8px; }
+.dif-fill  { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #4e9a6f, #7fd4a0); transition: width 0.5s ease; }
+.dif-fill.warn   { background: linear-gradient(90deg, #e8a838, #f5c870); }
+.dif-fill.danger { background: linear-gradient(90deg, #e05252, #f08080); }
+.dif-sub { display: flex; justify-content: space-between; font-size: 11px; }
+.dif-sub-rest { color: #e07070; }
+.dif-sub-fin  { color: #555; }
+.dif-resumen { background: #111e16; border: 1px solid #2a3a2a; border-radius: 12px; padding: 14px; margin-bottom: 16px; display: flex; justify-content: space-around; text-align: center; }
+.dif-resumen-item .dif-resumen-val   { font-size: 20px; font-weight: 700; color: #7fd4a0; }
+.dif-resumen-item .dif-resumen-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -552,6 +574,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <div class="analisis-text"><strong>Proyección</strong><span>Estimación a fin de mes</span></div>
           <span class="analisis-arrow">›</span>
         </div>
+        <div class="analisis-item" onclick="mostrarSubPage('diferidos')">
+          <span class="analisis-icon">💳</span>
+          <div class="analisis-text"><strong>Diferidos</strong><span>Cuotas activas y progreso</span></div>
+          <span class="analisis-arrow">›</span>
+        </div>
       </div>
     </div>
 
@@ -609,6 +636,27 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </div>
         <div class="proy-card"><div class="proy-label" style="margin-bottom:12px;">Por categoría</div><div id="proy-cats"></div></div>
       </div>
+    </div>
+
+    <div class="sub-page" id="sub-diferidos">
+      <button class="back-btn" onclick="volverAnalisis()">← Análisis</button>
+      <div id="dif-resumen-wrap" style="display:none">
+        <div class="dif-resumen">
+          <div class="dif-resumen-item">
+            <div class="dif-resumen-val" id="dif-total-cuotas">—</div>
+            <div class="dif-resumen-label">Cuotas / mes</div>
+          </div>
+          <div class="dif-resumen-item">
+            <div class="dif-resumen-val" id="dif-total-deuda" style="color:#e07070">—</div>
+            <div class="dif-resumen-label">Deuda total</div>
+          </div>
+          <div class="dif-resumen-item">
+            <div class="dif-resumen-val" id="dif-total-activos">—</div>
+            <div class="dif-resumen-label">Activos</div>
+          </div>
+        </div>
+      </div>
+      <div id="dif-lista"><p style="color:#555;font-size:13px;">Cargando...</p></div>
     </div>
   </div>
 
@@ -753,6 +801,7 @@ function mostrarSubPage(nombre) {
   if (nombre === 'presupuestos') cargarPresupuestos();
   if (nombre === 'historico') cargarHistorico();
   if (nombre === 'proyeccion') cargarProyeccion();
+  if (nombre === 'diferidos') cargarDiferidos();
 }
 
 function volverAnalisis() {
@@ -1502,6 +1551,86 @@ function formatTs(ts) { const d = new Date(ts); return d.getDate().toString().pa
 function mostrarOfflineBanner(v) { document.getElementById('offline-banner').className = 'offline-banner' + (v ? ' visible' : ''); }
 function urlConMes(cmd) { return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado; }
 function mostrarToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast visible'; setTimeout(() => t.className = 'toast', 2500); }
+
+// ── DIFERIDOS ─────────────────────────────────────────────
+async function cargarDiferidos() {
+  const lista = document.getElementById('dif-lista');
+  lista.innerHTML = '<p style="color:#555;font-size:13px;">Cargando...</p>';
+
+  const cached = leerCache('diferidos');
+  if (cached?.data) renderDiferidos(cached.data);
+
+  try {
+    const res = await fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' });
+    const json = await res.json();
+    if (json.error) {
+      lista.innerHTML = `<div style="background:#1a0a0a;border:1px solid #3a1010;border-radius:10px;
+        color:#e07070;font-size:12px;padding:10px 14px;line-height:1.6;">
+        ⚠️ ${json.error}<br><br>
+        Crea la hoja <strong>Config_Diferidos</strong> con columnas:<br>
+        A: Nombre · B: Monto_cuota · C: Día_cobro<br>
+        D: Categoría · E: Método · F: Cuotas_total<br>
+        G: Cuotas_pagadas · H: Activo (TRUE/FALSE)
+      </div>`;
+      return;
+    }
+    guardarCache('diferidos', json);
+    renderDiferidos(json);
+  } catch(e) {
+    if (!cached) lista.innerHTML = '<p class="error">Sin conexión.</p>';
+  }
+}
+
+function renderDiferidos(data) {
+  const lista    = document.getElementById('dif-lista');
+  const resumenW = document.getElementById('dif-resumen-wrap');
+
+  if (!data.length) {
+    lista.innerHTML = '<p style="color:#555;font-size:13px;">No hay diferidos configurados.</p>';
+    resumenW.style.display = 'none';
+    return;
+  }
+
+  const activos = data.filter(d => d.activo);
+  const totalMes   = activos.reduce((s, d) => s + d.montoCuota, 0);
+  const totalDeuda = activos.reduce((s, d) => s + d.montoRest, 0);
+
+  document.getElementById('dif-total-cuotas').textContent  = '$' + totalMes.toFixed(2);
+  document.getElementById('dif-total-deuda').textContent   = '$' + totalDeuda.toFixed(2);
+  document.getElementById('dif-total-activos').textContent = activos.length;
+  resumenW.style.display = 'block';
+
+  const ordenados = [...activos, ...data.filter(d => !d.activo)];
+
+  lista.innerHTML = ordenados.map(d => {
+    const pct  = Math.min(d.pct, 100);
+    const cc   = d.pct >= 100 ? 'danger' : d.pct >= 70 ? 'warn' : 'ok';
+    const comp = !d.activo;
+    return `<div class="dif-item${comp ? ' completado' : ''}">
+      <div class="dif-header">
+        <div>
+          <div class="dif-nombre">${comp ? '✅ ' : ''}${d.nombre}</div>
+          <div class="dif-meta">${d.categoria} · ${d.metodo} · día ${d.diaCobro}</div>
+        </div>
+        <div class="dif-right">
+          <div class="dif-cuotas ${cc}">${d.cuotasPagadas}/${d.cuotasTotal}</div>
+          <div style="font-size:11px;color:#888;">$${d.montoCuota}/mes</div>
+        </div>
+      </div>
+      <div class="dif-track">
+        <div class="dif-fill ${cc}" style="width:${pct}%"></div>
+      </div>
+      <div class="dif-sub">
+        <span class="dif-sub-rest">
+          ${d.cuotasRest > 0
+            ? 'Resta $' + d.montoRest.toFixed(2) + ' (' + d.cuotasRest + ' cuota' + (d.cuotasRest !== 1 ? 's' : '') + ')'
+            : '¡Pagado!'}
+        </span>
+        <span class="dif-sub-fin">Fin: ${d.finLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
