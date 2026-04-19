@@ -336,6 +336,17 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .dif-cuota-preview.visible { display: block; }
 .dif-cuota-preview-val { font-size: 22px; font-weight: 700; color: #7fd4a0; }
 .dif-cuota-preview-label { font-size: 11px; color: #555; margin-top: 2px; }
+.dif-filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.dif-filtro-btn { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; color: #888; font-size: 12px; padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dif-filtro-btn.active { background: #1a3a2a; border-color: #2a5a3a; color: #7fd4a0; }
+.dif-por-tarjeta { margin-bottom: 16px; }
+.dif-tarjeta-titulo { color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 2px; }
+.dif-tarjeta-row { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; }
+.dif-tarjeta-nombre { font-size: 13px; color: #e0e0e0; }
+.dif-tarjeta-nums { text-align: right; }
+.dif-tarjeta-cuota { font-size: 13px; font-weight: 600; color: #e8a838; }
+.dif-tarjeta-deuda { font-size: 11px; color: #555; margin-top: 2px; }
+.alert-banner.diferido { background: #0e1a1a; border: 1px solid #1a4a4a; color: #7fd4b4; }
 </style>
 </head>
 <body>
@@ -378,6 +389,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <!-- Alertas al abrir -->
     <div class="alert-banner subs" id="alert-subs"></div>
     <div class="alert-banner presup" id="alert-presup"></div>
+    <div class="alert-banner diferido" id="alert-diferido"></div>
 
     <!-- Balance grande -->
     <div class="home-balance">
@@ -660,6 +672,15 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
             <div class="dif-resumen-label">Activos</div>
           </div>
         </div>
+        <div class="dif-por-tarjeta" id="dif-por-tarjeta"></div>
+      </div>
+      <div class="dif-filtros" id="dif-filtros" style="display:none">
+        <button class="dif-filtro-btn active" onclick="filtrarDif('todos', this)">Todos</button>
+        <button class="dif-filtro-btn" onclick="filtrarDif('Diners', this)">💳 Diners</button>
+        <button class="dif-filtro-btn" onclick="filtrarDif('Visa Signature', this)">💳 Visa</button>
+        <button class="dif-filtro-btn" onclick="filtrarDif('Titanium Euphoria', this)">💳 Titanium</button>
+        <button class="dif-filtro-btn" onclick="filtrarDif('DeUna!', this)">📱 DeUna!</button>
+        <button class="dif-filtro-btn" onclick="filtrarDif('Transfer BP', this)">🏦 Transfer BP</button>
       </div>
       <button class="dif-nuevo-btn" onclick="abrirModalDif()">+ Nuevo diferido</button>
       <div id="dif-lista"><p style="color:#555;font-size:13px;">Cargando...</p></div>
@@ -889,12 +910,17 @@ async function cargarHome() {
   const cachedHoy = leerCache('hoy_raw');
   if (cachedHoy?.data) renderHomeHoy(cachedHoy.data);
 
+  // Alerta diferidos desde caché
+  const cachedDif = leerCache('diferidos');
+  if (cachedDif?.data) verificarAlertaDiferidos(cachedDif.data);
+
   try {
-    const [chartRes, hoyRes, subsRes, presRes] = await Promise.all([
+    const [chartRes, hoyRes, subsRes, presRes, difRes] = await Promise.all([
       fetch(urlConMes('chart'), { redirect: 'follow' }),
       fetch(urlConMes('hoy'), { redirect: 'follow' }),
       fetch(urlConMes('suscripciones'), { redirect: 'follow' }),
-      fetch(urlConMes('presupuestos'), { redirect: 'follow' })
+      fetch(urlConMes('presupuestos'), { redirect: 'follow' }),
+      fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' })
     ]);
     const chartData = await chartRes.json();
     guardarCache('chart', chartData);
@@ -914,6 +940,14 @@ async function cargarHome() {
     guardarCache('presupuestos', presData);
     presupuestosData = Array.isArray(presData) ? presData : [];
     verificarAlertas(subsItems, presupuestosData);
+
+    try {
+      const difData = await difRes.json();
+      if (Array.isArray(difData)) {
+        guardarCache('diferidos', difData);
+        verificarAlertaDiferidos(difData);
+      }
+    } catch {}
 
     mostrarOfflineBanner(false);
   } catch(e) {
@@ -954,6 +988,18 @@ function renderHomeHoy(txt) {
       <span class="home-hoy-monto">$${m[4]}</span>
     </div>`;
   }).join('') + (lineas.length > 5 ? `<div style="color:#555;font-size:11px;padding-top:6px;">+${lineas.length-5} más</div>` : '');
+}
+
+function verificarAlertaDiferidos(data) {
+  const banner = document.getElementById('alert-diferido');
+  const porTerminar = data.filter(d => d.activo && d.cuotasRest === 1);
+  if (porTerminar.length) {
+    banner.innerHTML = `<div class="alert-banner-title">🏁 Diferido por terminar</div>` +
+      porTerminar.map(d => `• <strong>${d.nombre}</strong> — última cuota $${d.montoCuota} (día ${d.diaCobro})`).join('<br>');
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
 }
 
 function verificarAlertas(subs, pres) {
@@ -1651,28 +1697,79 @@ async function cargarDiferidos() {
   }
 }
 
+let difData = []; // cache local para filtros
+
 function renderDiferidos(data) {
+  difData = data;
   const lista    = document.getElementById('dif-lista');
   const resumenW = document.getElementById('dif-resumen-wrap');
+  const filtros  = document.getElementById('dif-filtros');
 
   if (!data.length) {
     lista.innerHTML = '<p style="color:#555;font-size:13px;">No hay diferidos configurados.</p>';
     resumenW.style.display = 'none';
+    filtros.style.display = 'none';
     return;
   }
 
   const activos = data.filter(d => d.activo);
+
+  // ── Resumen global ────────────────────────────────────────
   const totalMes   = activos.reduce((s, d) => s + d.montoCuota, 0);
   const totalDeuda = activos.reduce((s, d) => s + d.montoRest, 0);
-
   document.getElementById('dif-total-cuotas').textContent  = '$' + totalMes.toFixed(2);
   document.getElementById('dif-total-deuda').textContent   = '$' + totalDeuda.toFixed(2);
   document.getElementById('dif-total-activos').textContent = activos.length;
   resumenW.style.display = 'block';
 
-  const ordenados = [...activos, ...data.filter(d => !d.activo)];
+  // ── Resumen por tarjeta ───────────────────────────────────
+  const porTarjeta = {};
+  activos.forEach(d => {
+    if (!porTarjeta[d.metodo]) porTarjeta[d.metodo] = { cuota: 0, deuda: 0 };
+    porTarjeta[d.metodo].cuota += d.montoCuota;
+    porTarjeta[d.metodo].deuda += d.montoRest;
+  });
+  const metodoEmoji = {
+    'Diners': '💳', 'Visa Signature': '💳', 'Titanium Euphoria': '💳',
+    'DeUna!': '📱', 'Transfer BP': '🏦'
+  };
+  const porTarjetaEl = document.getElementById('dif-por-tarjeta');
+  const tarjetasConDif = Object.keys(porTarjeta);
+  if (tarjetasConDif.length > 1) {
+    porTarjetaEl.innerHTML = `<div class="dif-tarjeta-titulo">Por tarjeta</div>` +
+      tarjetasConDif.map(met => `
+        <div class="dif-tarjeta-row">
+          <span class="dif-tarjeta-nombre">${metodoEmoji[met] || '💳'} ${met}</span>
+          <div class="dif-tarjeta-nums">
+            <div class="dif-tarjeta-cuota">$${porTarjeta[met].cuota.toFixed(2)}/mes</div>
+            <div class="dif-tarjeta-deuda">Deuda: $${porTarjeta[met].deuda.toFixed(2)}</div>
+          </div>
+        </div>`).join('');
+  } else {
+    porTarjetaEl.innerHTML = '';
+  }
 
-  lista.innerHTML = ordenados.map(d => {
+  // ── Mostrar filtros solo si hay más de una tarjeta ────────
+  filtros.style.display = tarjetasConDif.length > 1 ? 'flex' : 'none';
+
+  // ── Renderizar lista (respeta filtro activo) ──────────────
+  const filtroActivo = document.querySelector('.dif-filtro-btn.active')?.dataset?.filtro || 'todos';
+  renderListaDif(data, filtroActivo);
+}
+
+function renderListaDif(data, filtro) {
+  const lista = document.getElementById('dif-lista');
+  const activos = data.filter(d => d.activo);
+  const inactivos = data.filter(d => !d.activo);
+  const ordenados = [...activos, ...inactivos];
+  const filtrados = filtro === 'todos' ? ordenados : ordenados.filter(d => d.metodo === filtro);
+
+  if (!filtrados.length) {
+    lista.innerHTML = '<p style="color:#555;font-size:13px;">Sin diferidos para esta tarjeta.</p>';
+    return;
+  }
+
+  lista.innerHTML = filtrados.map(d => {
     const pct  = Math.min(d.pct, 100);
     const cc   = d.pct >= 100 ? 'danger' : d.pct >= 70 ? 'warn' : 'ok';
     const comp = !d.activo;
@@ -1700,6 +1797,16 @@ function renderDiferidos(data) {
       </div>
     </div>`;
   }).join('');
+}
+
+function filtrarDif(filtro, btn) {
+  document.querySelectorAll('.dif-filtro-btn').forEach(b => {
+    b.classList.remove('active');
+    b.dataset.filtro = b.dataset.filtro || b.textContent.trim();
+  });
+  btn.classList.add('active');
+  btn.dataset.filtro = filtro;
+  renderListaDif(difData, filtro);
 }
 
 // ── MODAL NUEVO DIFERIDO ──────────────────────────────────
