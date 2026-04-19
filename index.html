@@ -381,6 +381,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <option value="9">Septiembre</option><option value="10">Octubre</option>
       <option value="11">Noviembre</option><option value="12">Diciembre</option>
     </select>
+    <select class="month-select" id="year-select" onchange="onMesChange()" style="flex:0;min-width:64px;text-align:right;">
+    </select>
     <span class="month-arrow">▾</span>
   </div>
 
@@ -824,6 +826,7 @@ let selectedCat = '', selectedMet = '';
 let chartInstance = null, historicoLineChart = null, historicoBarChart = null;
 let tipoReg = 'gasto';
 let mesSeleccionado = new Date().getMonth() + 1;
+let anioSeleccionado = new Date().getFullYear();
 let historialData = [];
 let filtroActivo = 'todos';
 let presupuestosData = []; // cache para aviso al registrar
@@ -846,6 +849,18 @@ function iniciarApp() {
   const hoy = new Date();
   setFechaRapida(0);
   mesSeleccionado = hoy.getMonth() + 1;
+  anioSeleccionado = hoy.getFullYear();
+
+  // Poblar selector de año: año anterior, actual y siguiente
+  const yearSel = document.getElementById('year-select');
+  yearSel.innerHTML = '';
+  for (let y = anioSeleccionado - 1; y <= anioSeleccionado + 1; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    if (y === anioSeleccionado) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+
   document.getElementById('month-select').value = mesSeleccionado;
   const m1 = mesSeleccionado, m2 = m1 > 1 ? m1 - 1 : 12;
   document.getElementById('comp-mes1').value = m1;
@@ -873,6 +888,7 @@ function switchTab(tab) {
 
 function onMesChange() {
   mesSeleccionado = parseInt(document.getElementById('month-select').value);
+  anioSeleccionado = parseInt(document.getElementById('year-select').value);
   const activePage = document.querySelector('.page.active')?.id;
   if (activePage === 'page-home') cargarHome();
   if (activePage === 'page-analisis') {
@@ -881,7 +897,7 @@ function onMesChange() {
     if (activeSub === 'sub-presupuestos') cargarPresupuestos();
   }
   if (activePage === 'page-historial') cargarHistorial();
-  mostrarToast('Mes: ' + MESES_LABEL[mesSeleccionado - 1]);
+  mostrarToast(MESES_LABEL[mesSeleccionado - 1] + ' ' + anioSeleccionado);
 }
 
 function mostrarSubPage(nombre) {
@@ -1480,8 +1496,8 @@ async function cargarProyeccion() {
   } catch(e) {}
   if (!sueldo && !gastoActual) { document.getElementById('proy-loading').innerHTML = '<p style="color:#666;font-size:13px;">Sin datos.</p>'; return; }
   const hoy = new Date();
-  const esMesActual = (mesSeleccionado-1) === hoy.getMonth();
-  const diasEnMes = new Date(hoy.getFullYear(), mesSeleccionado, 0).getDate();
+  const esMesActual = (mesSeleccionado-1) === hoy.getMonth() && anioSeleccionado === hoy.getFullYear();
+  const diasEnMes = new Date(anioSeleccionado, mesSeleccionado, 0).getDate();
   const diaActual = esMesActual ? hoy.getDate() : diasEnMes;
   const gastoDiario = diaActual > 0 ? gastoActual/diaActual : 0;
   const proyeccionFin = gastoDiario * diasEnMes;
@@ -1660,12 +1676,12 @@ function irAlSheets() {
 }
 
 // ── CACHÉ ─────────────────────────────────────────────────
-function cacheKey(cmd) { return 'cache_' + cmd + '_mes' + mesSeleccionado; }
+function cacheKey(cmd) { return 'cache_' + cmd + '_mes' + mesSeleccionado + '_anio' + anioSeleccionado; }
 function guardarCache(cmd, data) { try { localStorage.setItem(cacheKey(cmd), JSON.stringify({ ts: Date.now(), data })); } catch(e) {} }
 function leerCache(cmd) { try { const r = localStorage.getItem(cacheKey(cmd)); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
 function formatTs(ts) { const d = new Date(ts); return d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0'); }
 function mostrarOfflineBanner(v) { document.getElementById('offline-banner').className = 'offline-banner' + (v ? ' visible' : ''); }
-function urlConMes(cmd) { return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado; }
+function urlConMes(cmd) { return scriptUrl + '?cmd=' + encodeURIComponent(cmd) + '&mes=' + mesSeleccionado + '&anio=' + anioSeleccionado; }
 function mostrarToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast visible'; setTimeout(() => t.className = 'toast', 2500); }
 
 // ── DIFERIDOS ─────────────────────────────────────────────
