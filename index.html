@@ -331,6 +331,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .dif-resumen { background: #111e16; border: 1px solid #2a3a2a; border-radius: 12px; padding: 14px; margin-bottom: 16px; display: flex; justify-content: space-around; text-align: center; }
 .dif-resumen-item .dif-resumen-val   { font-size: 20px; font-weight: 700; color: #7fd4a0; }
 .dif-resumen-item .dif-resumen-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+.dif-nuevo-btn { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 12px; color: #7fd4a0; font-size: 14px; font-weight: 600; padding: 14px; width: 100%; cursor: pointer; margin-bottom: 16px; }
+.dif-cuota-preview { background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: none; }
+.dif-cuota-preview.visible { display: block; }
+.dif-cuota-preview-val { font-size: 22px; font-weight: 700; color: #7fd4a0; }
+.dif-cuota-preview-label { font-size: 11px; color: #555; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -656,6 +661,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           </div>
         </div>
       </div>
+      <button class="dif-nuevo-btn" onclick="abrirModalDif()">+ Nuevo diferido</button>
       <div id="dif-lista"><p style="color:#555;font-size:13px;">Cargando...</p></div>
     </div>
   </div>
@@ -715,6 +721,70 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="modal-btns">
       <button class="modal-ok" onclick="guardarFav()">Guardar</button>
       <button class="modal-cancel" onclick="cerrarModalFav()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL NUEVO DIFERIDO ── -->
+<div class="modal-overlay" id="modal-dif" onclick="cerrarModalDif(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-title">💳 Nuevo diferido</div>
+    <div class="modal-field">
+      <label>Nombre</label>
+      <input type="text" id="dif-nombre" placeholder="ej: Tablet, Sofá, Viaje..." />
+    </div>
+    <div class="modal-field">
+      <label>Monto total ($)</label>
+      <input type="text" id="dif-monto-total" placeholder="0.00" inputmode="decimal"
+        oninput="calcularCuotaPreview()" />
+    </div>
+    <div class="modal-field">
+      <label>Número de cuotas</label>
+      <input type="number" id="dif-cuotas-total" placeholder="ej: 6" min="1" max="60"
+        oninput="calcularCuotaPreview()" />
+    </div>
+    <div class="dif-cuota-preview" id="dif-cuota-preview">
+      <div class="dif-cuota-preview-val" id="dif-cuota-val">—</div>
+      <div class="dif-cuota-preview-label">por mes</div>
+    </div>
+    <div class="modal-field">
+      <label>Cuotas ya pagadas</label>
+      <input type="number" id="dif-cuotas-pagadas" placeholder="0" min="0" max="60" value="0" />
+    </div>
+    <div class="modal-field">
+      <label>Día de cobro</label>
+      <input type="number" id="dif-dia-cobro" placeholder="ej: 30" min="1" max="31" />
+    </div>
+    <div class="modal-field">
+      <label>Categoría</label>
+      <select id="dif-cat">
+        <option value="">Selecciona...</option>
+        <option value="Transporte">🚗 Transporte</option>
+        <option value="Comida">🍔 Comida</option>
+        <option value="Trámites">📋 Trámites</option>
+        <option value="Estado cuenta">📊 Estado cuenta</option>
+        <option value="Tienda">🛒 Tienda</option>
+        <option value="Ocio">🎮 Ocio</option>
+        <option value="Family">👨‍👩‍👧 Family</option>
+        <option value="Arriendo">🏠 Arriendo</option>
+        <option value="Necesidad">🧾 Necesidad</option>
+        <option value="Herramienta">🔧 Herramienta</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Método de pago</label>
+      <select id="dif-met">
+        <option value="">Selecciona...</option>
+        <option value="Diners">💳 Diners</option>
+        <option value="Visa Signature">💳 Visa Signature</option>
+        <option value="Titanium Euphoria">💳 Titanium Euphoria</option>
+        <option value="DeUna!">📱 DeUna!</option>
+        <option value="Transfer BP">🏦 Transfer BP</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-ok" onclick="guardarNuevoDif()">Guardar</button>
+      <button class="modal-cancel" onclick="cerrarModalDif()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1630,6 +1700,83 @@ function renderDiferidos(data) {
       </div>
     </div>`;
   }).join('');
+}
+
+// ── MODAL NUEVO DIFERIDO ──────────────────────────────────
+function abrirModalDif() {
+  document.getElementById('modal-dif').classList.add('visible');
+  document.getElementById('dif-nombre').focus();
+}
+
+function cerrarModalDif(e) {
+  if (!e || e.target === document.getElementById('modal-dif')) {
+    document.getElementById('modal-dif').classList.remove('visible');
+    // Limpiar campos
+    ['dif-nombre','dif-monto-total','dif-cuotas-total','dif-dia-cobro'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('dif-cuotas-pagadas').value = '0';
+    document.getElementById('dif-cat').value = '';
+    document.getElementById('dif-met').value = '';
+    document.getElementById('dif-cuota-preview').classList.remove('visible');
+  }
+}
+
+function calcularCuotaPreview() {
+  const total  = parseFloat(document.getElementById('dif-monto-total').value.replace(',', '.'));
+  const cuotas = parseInt(document.getElementById('dif-cuotas-total').value);
+  const preview = document.getElementById('dif-cuota-preview');
+  if (total > 0 && cuotas > 0) {
+    const cuota = (total / cuotas).toFixed(2);
+    document.getElementById('dif-cuota-val').textContent = '$' + cuota + '/mes';
+    preview.classList.add('visible');
+  } else {
+    preview.classList.remove('visible');
+  }
+}
+
+async function guardarNuevoDif() {
+  const nombre        = document.getElementById('dif-nombre').value.trim();
+  const montoTotal    = parseFloat(document.getElementById('dif-monto-total').value.replace(',', '.'));
+  const cuotasTotal   = parseInt(document.getElementById('dif-cuotas-total').value);
+  const cuotasPagadas = parseInt(document.getElementById('dif-cuotas-pagadas').value) || 0;
+  const diaCobro      = parseInt(document.getElementById('dif-dia-cobro').value);
+  const categoria     = document.getElementById('dif-cat').value;
+  const metodo        = document.getElementById('dif-met').value;
+
+  if (!nombre || !montoTotal || !cuotasTotal || !diaCobro || !categoria || !metodo) {
+    mostrarToast('Completa todos los campos'); return;
+  }
+  if (diaCobro < 1 || diaCobro > 31) {
+    mostrarToast('Día de cobro inválido'); return;
+  }
+  if (cuotasPagadas >= cuotasTotal) {
+    mostrarToast('Las cuotas pagadas no pueden ser ≥ al total'); return;
+  }
+
+  const montoCuota = Math.round((montoTotal / cuotasTotal) * 100) / 100;
+
+  const btn = document.querySelector('#modal-dif .modal-ok');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+
+  try {
+    const params = new URLSearchParams({
+      cmd: 'nuevo_diferido',
+      nombre, montoCuota, diaCobro, categoria, metodo,
+      cuotasTotal, cuotasPagadas
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    if (txt.includes('✅')) {
+      cerrarModalDif();
+      cargarDiferidos(); // recargar lista
+    }
+  } catch(e) {
+    mostrarToast('Error al guardar');
+  }
+
+  btn.textContent = 'Guardar'; btn.disabled = false;
 }
 </script>
 </body>
