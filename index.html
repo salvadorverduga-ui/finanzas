@@ -313,6 +313,14 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 /* ── DIFERIDOS ── */
 .dif-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
 .dif-item.completado { opacity: 0.5; }
+.dif-acciones { display: flex; gap: 6px; margin-top: 10px; border-top: 1px solid #222; padding-top: 10px; }
+.dif-acc-btn { flex: 1; border-radius: 8px; font-size: 12px; padding: 7px 4px; cursor: pointer; text-align: center; border: 1px solid; }
+.dif-acc-edit  { background: #1a2a3a; border-color: #2a4a5a; color: #7fb4d4; }
+.dif-acc-saldar { background: #1a1a2a; border-color: #3a2a5a; color: #b49fd4; }
+.dif-acc-deshacer { background: #2a1a1a; border-color: #5a2a2a; color: #e07070; }
+.saldar-confirm { background: #0e0a1a; border: 1px solid #3a2a5a; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: #b49fd4; font-size: 13px; line-height: 1.6; display: none; }
+.saldar-confirm.visible { display: block; }
+.saldar-confirm strong { color: #e0e0e0; }
 .dif-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .dif-nombre { font-size: 14px; font-weight: 600; color: #e0e0e0; }
 .dif-meta { font-size: 11px; color: #555; margin-top: 2px; }
@@ -808,6 +816,79 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="modal-btns">
       <button class="modal-ok" onclick="guardarNuevoDif()">Guardar</button>
       <button class="modal-cancel" onclick="cerrarModalDif()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EDITAR DIFERIDO ── -->
+<div class="modal-overlay" id="modal-dif-edit" onclick="cerrarModalDifEdit(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Editar diferido</div>
+    <div style="background:#1a1800;border:1px solid #3a3000;border-radius:8px;color:#a08030;font-size:11px;padding:8px 12px;margin-bottom:14px;">
+      Los cambios aplican desde la próxima cuota. Las cuotas ya pagadas no se modifican.
+    </div>
+    <input type="hidden" id="edit-dif-idx" />
+    <div class="modal-field">
+      <label>Nombre</label>
+      <input type="text" id="edit-dif-nombre" />
+    </div>
+    <div class="modal-field">
+      <label>Monto por cuota ($)</label>
+      <input type="text" id="edit-dif-monto" inputmode="decimal" />
+    </div>
+    <div class="modal-field">
+      <label>Total de cuotas</label>
+      <input type="number" id="edit-dif-cuotas-total" min="1" max="60" />
+    </div>
+    <div class="modal-field">
+      <label>Día de cobro</label>
+      <input type="number" id="edit-dif-dia" min="1" max="31" />
+    </div>
+    <div class="modal-field">
+      <label>Categoría</label>
+      <select id="edit-dif-cat">
+        <option value="Transporte">🚗 Transporte</option>
+        <option value="Comida">🍔 Comida</option>
+        <option value="Trámites">📋 Trámites</option>
+        <option value="Estado cuenta">📊 Estado cuenta</option>
+        <option value="Tienda">🛒 Tienda</option>
+        <option value="Ocio">🎮 Ocio</option>
+        <option value="Family">👨‍👩‍👧 Family</option>
+        <option value="Arriendo">🏠 Arriendo</option>
+        <option value="Necesidad">🧾 Necesidad</option>
+        <option value="Herramienta">🔧 Herramienta</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Método de pago</label>
+      <select id="edit-dif-met">
+        <option value="Diners">💳 Diners</option>
+        <option value="Visa Signature">💳 Visa Signature</option>
+        <option value="Titanium Euphoria">💳 Titanium Euphoria</option>
+        <option value="DeUna!">📱 DeUna!</option>
+        <option value="Transfer BP">🏦 Transfer BP</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-ok" onclick="guardarEdicionDif()">Guardar</button>
+      <button class="modal-cancel" onclick="cerrarModalDifEdit()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL SALDAR DIFERIDO ── -->
+<div class="modal-overlay" id="modal-dif-saldar" onclick="cerrarModalSaldar(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-title">💜 Saldar diferido</div>
+    <div class="saldar-confirm visible" id="saldar-detalle"></div>
+    <div style="color:#666;font-size:12px;line-height:1.6;margin-bottom:16px;">
+      Se registrará el monto restante como gasto en Egresos y el diferido quedará cerrado.<br>
+      Tendrás <strong style="color:#e0e0e0;">24 horas</strong> para deshacer esta acción desde la tarjeta.
+    </div>
+    <input type="hidden" id="saldar-dif-idx" />
+    <div class="modal-btns">
+      <button class="modal-ok" style="background:#1a0e2a;border-color:#3a2a5a;color:#b49fd4;" onclick="confirmarSaldar()">Sí, saldar</button>
+      <button class="modal-cancel" onclick="cerrarModalSaldar()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1785,10 +1866,31 @@ function renderListaDif(data, filtro) {
     return;
   }
 
-  lista.innerHTML = filtrados.map(d => {
+  // Recuperar saldos recientes para mostrar botón deshacer
+  const saldosRecientes = JSON.parse(localStorage.getItem('dif_saldos_recientes') || '{}');
+  const ahora = Date.now();
+
+  lista.innerHTML = filtrados.map((d, i) => {
+    const idx  = difData.indexOf(d); // índice real en difData para editar/saldar
     const pct  = Math.min(d.pct, 100);
     const cc   = d.pct >= 100 ? 'danger' : d.pct >= 70 ? 'warn' : 'ok';
     const comp = !d.activo;
+
+    // ¿Tiene un saldo reciente (<24h) que se puede deshacer?
+    const saldoKey = d.nombre;
+    const saldoRec = saldosRecientes[saldoKey];
+    const puedeDeshacer = comp && saldoRec && (ahora - saldoRec.ts) < 86400000;
+
+    const botonesActivo = `
+      <div class="dif-acciones">
+        <button class="dif-acc-btn dif-acc-edit" onclick="abrirEditDif(${idx})">✏️ Editar</button>
+        <button class="dif-acc-btn dif-acc-saldar" onclick="abrirSaldarDif(${idx})">💜 Saldar</button>
+      </div>`;
+    const botonesCompletado = puedeDeshacer ? `
+      <div class="dif-acciones">
+        <button class="dif-acc-btn dif-acc-deshacer" onclick="deshacerSaldar('${d.nombre}')">↩️ Deshacer saldo</button>
+      </div>` : '';
+
     return `<div class="dif-item${comp ? ' completado' : ''}">
       <div class="dif-header">
         <div>
@@ -1811,8 +1913,155 @@ function renderListaDif(data, filtro) {
         </span>
         <span class="dif-sub-fin">Fin: ${d.finLabel}</span>
       </div>
+      ${comp ? botonesCompletado : botonesActivo}
     </div>`;
   }).join('');
+}
+
+// ── EDITAR DIFERIDO ───────────────────────────────────────
+function abrirEditDif(idx) {
+  const d = difData[idx];
+  if (!d) return;
+  document.getElementById('edit-dif-idx').value = idx;
+  document.getElementById('edit-dif-nombre').value = d.nombre;
+  document.getElementById('edit-dif-monto').value = d.montoCuota;
+  document.getElementById('edit-dif-cuotas-total').value = d.cuotasTotal;
+  document.getElementById('edit-dif-dia').value = d.diaCobro;
+  document.getElementById('edit-dif-cat').value = d.categoria;
+  document.getElementById('edit-dif-met').value = d.metodo;
+  document.getElementById('modal-dif-edit').classList.add('visible');
+}
+
+function cerrarModalDifEdit(e) {
+  if (!e || e.target === document.getElementById('modal-dif-edit')) {
+    document.getElementById('modal-dif-edit').classList.remove('visible');
+  }
+}
+
+async function guardarEdicionDif() {
+  const idx         = parseInt(document.getElementById('edit-dif-idx').value);
+  const nombre      = document.getElementById('edit-dif-nombre').value.trim();
+  const montoCuota  = parseFloat(document.getElementById('edit-dif-monto').value.replace(',', '.'));
+  const cuotasTotal = parseInt(document.getElementById('edit-dif-cuotas-total').value);
+  const diaCobro    = parseInt(document.getElementById('edit-dif-dia').value);
+  const categoria   = document.getElementById('edit-dif-cat').value;
+  const metodo      = document.getElementById('edit-dif-met').value;
+
+  if (!nombre || !montoCuota || !cuotasTotal || !diaCobro) {
+    mostrarToast('Completa todos los campos'); return;
+  }
+  const d = difData[idx];
+  if (cuotasTotal < d.cuotasPagadas) {
+    mostrarToast('El total no puede ser menor a las ya pagadas'); return;
+  }
+
+  const btn = document.querySelector('#modal-dif-edit .modal-ok');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+
+  try {
+    const params = new URLSearchParams({
+      cmd: 'editar_diferido',
+      nombre_original: d.nombre,
+      nombre, montoCuota, diaCobro, categoria, metodo, cuotasTotal
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    if (txt.includes('✅')) {
+      cerrarModalDifEdit();
+      cargarDiferidos();
+    }
+  } catch(e) { mostrarToast('Error al guardar'); }
+
+  btn.textContent = 'Guardar'; btn.disabled = false;
+}
+
+// ── SALDAR DIFERIDO ───────────────────────────────────────
+function abrirSaldarDif(idx) {
+  const d = difData[idx];
+  if (!d) return;
+  document.getElementById('saldar-dif-idx').value = idx;
+  document.getElementById('saldar-detalle').innerHTML =
+    `Diferido: <strong>${d.nombre}</strong><br>` +
+    `Cuotas restantes: <strong>${d.cuotasRest}</strong> × $${d.montoCuota} = <strong>$${d.montoRest.toFixed(2)}</strong><br>` +
+    `Método: <strong>${d.metodo}</strong> · Categoría: <strong>${d.categoria}</strong>`;
+  document.getElementById('modal-dif-saldar').classList.add('visible');
+}
+
+function cerrarModalSaldar(e) {
+  if (!e || e.target === document.getElementById('modal-dif-saldar')) {
+    document.getElementById('modal-dif-saldar').classList.remove('visible');
+  }
+}
+
+async function confirmarSaldar() {
+  const idx = parseInt(document.getElementById('saldar-dif-idx').value);
+  const d   = difData[idx];
+  if (!d) return;
+
+  const btn = document.querySelector('#modal-dif-saldar .modal-ok');
+  btn.textContent = 'Saldando...'; btn.disabled = true;
+
+  try {
+    const params = new URLSearchParams({
+      cmd: 'saldar_diferido',
+      nombre: d.nombre,
+      montoRest: d.montoRest,
+      categoria: d.categoria,
+      metodo: d.metodo,
+      cuotasPagadas: d.cuotasPagadas,
+      cuotasTotal: d.cuotasTotal
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    if (txt.includes('✅')) {
+      // Guardar en localStorage para el botón deshacer (24h)
+      const saldos = JSON.parse(localStorage.getItem('dif_saldos_recientes') || '{}');
+      saldos[d.nombre] = {
+        ts: Date.now(),
+        montoRest: d.montoRest,
+        cuotasPagadas: d.cuotasPagadas,
+        cuotasTotal: d.cuotasTotal,
+        categoria: d.categoria,
+        metodo: d.metodo,
+        diaCobro: d.diaCobro,
+        montoCuota: d.montoCuota
+      };
+      localStorage.setItem('dif_saldos_recientes', JSON.stringify(saldos));
+      cerrarModalSaldar();
+      cargarDiferidos();
+    }
+  } catch(e) { mostrarToast('Error al saldar'); }
+
+  btn.textContent = 'Sí, saldar'; btn.disabled = false;
+}
+
+async function deshacerSaldar(nombre) {
+  const saldos = JSON.parse(localStorage.getItem('dif_saldos_recientes') || '{}');
+  const s = saldos[nombre];
+  if (!s) { mostrarToast('No hay saldo reciente para deshacer'); return; }
+
+  if (!confirm(`¿Deshacer el saldo de "${nombre}"? Se eliminará el gasto registrado y el diferido volverá a estar activo.`)) return;
+
+  try {
+    const params = new URLSearchParams({
+      cmd: 'deshacer_saldar',
+      nombre,
+      montoRest: s.montoRest,
+      cuotasPagadas: s.cuotasPagadas,
+      cuotasTotal: s.cuotasTotal
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    if (txt.includes('✅')) {
+      // Limpiar del localStorage
+      delete saldos[nombre];
+      localStorage.setItem('dif_saldos_recientes', JSON.stringify(saldos));
+      cargarDiferidos();
+    }
+  } catch(e) { mostrarToast('Error al deshacer'); }
 }
 
 function filtrarDif(filtro, btn) {
