@@ -410,7 +410,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="alert-banner subs" id="alert-revisar" style="display:none">
       <div class="alert-banner-title">💳 Gastos para clasificar como diferido</div>
       <div id="alert-revisar-body" style="margin:6px 0 10px;line-height:1.7;"></div>
-      <button onclick="mostrarSubPage('diferidos')" style="background:#1a2a3a;border:1px solid #2a4a6a;border-radius:8px;color:#7fb4d4;font-size:12px;padding:7px 12px;cursor:pointer;width:100%;">Ver diferidos →</button>
+      <button onclick="irADiferidos()" style="background:#1a2a3a;border:1px solid #2a4a6a;border-radius:8px;color:#7fb4d4;font-size:12px;padding:7px 12px;cursor:pointer;width:100%;">Ver diferidos →</button>
     </div>
 
     <!-- Balance grande -->
@@ -1113,22 +1113,106 @@ async function cargarHome() {
     if (pendR.status === 'fulfilled') {
       try {
         const pendData = await pendR.value.json();
-        const banner  = document.getElementById('alert-revisar');
-        const body    = document.getElementById('alert-revisar-body');
-        if (Array.isArray(pendData) && pendData.length > 0) {
-          body.innerHTML = pendData.map(p =>
-            `• <strong>${p.comercio}</strong> $${p.monto} · ${p.metodo} · ${p.fecha}`
-          ).join('<br>');
-          banner.style.display = 'block';
-        } else {
-          banner.style.display = 'none';
-        }
+        renderBannerRevisar(pendData);
       } catch {}
     }
 
     mostrarOfflineBanner(huboError);
   } catch(e) {
     mostrarOfflineBanner(true);
+  }
+}
+
+// ── BANNER PENDIENTES REVISAR ──────────────────────────────
+let pendientesRevisar = []; // cache local para acciones
+
+function renderBannerRevisar(data) {
+  const banner = document.getElementById('alert-revisar');
+  const body   = document.getElementById('alert-revisar-body');
+  pendientesRevisar = Array.isArray(data) ? data : [];
+  if (!pendientesRevisar.length) {
+    banner.style.display = 'none';
+    return;
+  }
+  body.innerHTML = pendientesRevisar.map((p, i) => `
+    <div style="background:#0e1a2a;border:1px solid #1a3a5a;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e0e0e0;">${p.comercio}</div>
+          <div style="font-size:11px;color:#555;margin-top:2px;">${p.metodo} · ${p.fecha}</div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#e8a838;">$${p.monto}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="abrirDifDesdeRevisar(${i})"
+          style="flex:1;background:#1a2a3a;border:1px solid #2a4a6a;border-radius:8px;color:#7fb4d4;font-size:12px;font-weight:600;padding:8px 4px;cursor:pointer;">
+          💳 Es diferido
+        </button>
+        <button onclick="confirmarComoEgreso(${i}, this)"
+          style="flex:1;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#888;font-size:12px;padding:8px 4px;cursor:pointer;">
+          ✅ Egreso normal
+        </button>
+      </div>
+    </div>`).join('');
+  banner.style.display = 'block';
+}
+
+function irADiferidos() {
+  switchTab('analisis');
+  mostrarSubPage('diferidos');
+}
+
+function abrirDifDesdeRevisar(idx) {
+  const p = pendientesRevisar[idx];
+  if (!p) return;
+  // Pre-llenar modal de nuevo diferido
+  document.getElementById('dif-nombre').value = p.comercio;
+  document.getElementById('dif-monto-total').value = p.monto;
+  document.getElementById('dif-cuotas-pagadas').value = '0';
+  const metMap = { 'Diners': 'Diners', 'Visa Signature': 'Visa Signature', 'Titanium Euphoria': 'Titanium Euphoria', 'DeUna!': 'DeUna!', 'Transfer BP': 'Transfer BP' };
+  if (metMap[p.metodo]) document.getElementById('dif-met').value = metMap[p.metodo];
+  calcularCuotaPreview();
+  // Navegar a Diferidos y abrir modal
+  switchTab('analisis');
+  mostrarSubPage('diferidos');
+  setTimeout(() => {
+    document.getElementById('modal-dif').classList.add('visible');
+    mostrarToast('💳 Completá cuotas y día de cobro');
+  }, 350);
+}
+
+async function confirmarComoEgreso(idx, btn) {
+  const p = pendientesRevisar[idx];
+  if (!p) return;
+  if (!confirm(`¿Registrar "${p.comercio}" $${p.monto} como egreso normal?`)) return;
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+  try {
+    const hoy = new Date().toISOString().split('T')[0];
+    const params = new URLSearchParams({
+      cmd: 'registrar',
+      fecha: hoy,
+      monto: p.monto,
+      categoria: 'Sin clasificar',
+      metodo: p.metodo,
+      descripcion: p.comercio
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    if (txt.includes('✅')) {
+      mostrarToast('✅ Registrado como egreso');
+      // Quitar la tarjeta del banner
+      pendientesRevisar.splice(idx, 1);
+      renderBannerRevisar(pendientesRevisar);
+    } else {
+      mostrarToast('Error: ' + txt);
+      btn.textContent = '✅ Egreso normal';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    mostrarToast('Sin conexión');
+    btn.textContent = '✅ Egreso normal';
+    btn.disabled = false;
   }
 }
 
