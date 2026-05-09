@@ -459,6 +459,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Necesidad'))"><span class="icon">🧾</span><span class="label">Necesidad</span></button>
         <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Herramienta'))"><span class="icon">🔧</span><span class="label">Herramienta</span></button>
         <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Estado cuenta'))"><span class="icon">📊</span><span class="label">Estado cuenta</span></button>
+        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Vestimenta'))"><span class="icon">👔</span><span class="label">Vestimenta</span></button>
+        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Salud / Cuidado Personal'))"><span class="icon">💊</span><span class="label">Salud</span></button>
       </div>
     </div>
 
@@ -519,6 +521,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <div class="pill" onclick="selectPill(this,'cat')" data-value="Arriendo">🏠 Arriendo</div>
           <div class="pill" onclick="selectPill(this,'cat')" data-value="Necesidad">🧾 Necesidad</div>
           <div class="pill" onclick="selectPill(this,'cat')" data-value="Herramienta">🔧 Herramienta</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Vestimenta">👔 Vestimenta</div>
+          <div class="pill" onclick="selectPill(this,'cat')" data-value="Salud / Cuidado Personal">💊 Salud</div>
         </div>
       </div>
       <div class="form-field">
@@ -575,6 +579,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <button class="hist-filter-btn" onclick="setFiltroHist('Titanium Euphoria')">💳T</button>
       <button class="hist-filter-btn" onclick="setFiltroHist('DeUna!')">📱</button>
       <button class="hist-filter-btn" onclick="setFiltroHist('Transfer BP')">🏦</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Vestimenta')">👔</button>
+      <button class="hist-filter-btn" onclick="setFiltroHist('Salud / Cuidado Personal')">💊</button>
     </div>
     <div class="hist-filter-total" id="hist-filter-total">
       <span id="hist-filter-label" style="color:#888;font-size:12px;"></span>
@@ -657,7 +663,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div id="hist-resumen-lista"></div>
     </div>
 
-
+    <div class="sub-page" id="sub-comparar">
       <button class="back-btn" onclick="volverAnalisis()">← Análisis</button>
       <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
         <span style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Mes A</span>
@@ -953,7 +959,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta"];
+const CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta","Vestimenta","Salud / Cuidado Personal"];
 const METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer BP"];
 const MESES_LABEL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
@@ -1076,7 +1082,8 @@ function volverAnalisis() {
 async function cargarHome() {
   // Cargar balance (desde caché primero)
   const cachedChart = leerCache('chart');
-  if (cachedChart?.data) renderHomeBalance(cachedChart.data, undefined, undefined);
+  const cachedBal = leerCache('balance_json');
+  if (cachedBal?.data) renderHomeBalance(cachedBal.data);
 
   // Cargar gastos de hoy (desde caché primero)
   const cachedHoy = leerCache('hoy_raw');
@@ -1088,47 +1095,28 @@ async function cargarHome() {
 
   try {
     const resultados = await Promise.allSettled([
-      fetch(urlConMes('chart'), { redirect: 'follow' }),
+      fetch(urlConMes('balance_json'), { redirect: 'follow' }),
       fetch(urlConMes('hoy'), { redirect: 'follow' }),
       fetch(urlConMes('suscripciones'), { redirect: 'follow' }),
       fetch(urlConMes('presupuestos'), { redirect: 'follow' }),
       fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' }),
-      fetch(scriptUrl + '?cmd=pendientes_revisar', { redirect: 'follow' }),
-      fetch(urlConMes('ingresos_detalle'), { redirect: 'follow' }),
-      fetch(urlConMes('historial'), { redirect: 'follow' })
+      fetch(scriptUrl + '?cmd=pendientes_revisar', { redirect: 'follow' })
     ]);
 
-    const [chartR, hoyR, subsR, presR, difR, pendR, ingR, histR] = resultados;
+    const [balR, hoyR, subsR, presR, difR, pendR] = resultados;
     let huboError = false;
-    let ingresosTotal = undefined, egresosTotal = undefined;
 
-    // ingresos reales del mes
-    if (ingR.status === 'fulfilled') {
+    // balance_json — datos reales de B2/B3/B4
+    if (balR.status === 'fulfilled') {
       try {
-        const ingData = await ingR.value.json();
-        if (ingData && ingData.total !== undefined) ingresosTotal = parseFloat(ingData.total) || 0;
-      } catch {}
-    }
-
-    // egresos reales del mes desde historial
-    if (histR.status === 'fulfilled') {
-      try {
-        const histData = await histR.value.json();
-        if (Array.isArray(histData)) {
-          egresosTotal = histData.reduce((s, x) => s + (parseFloat(x.monto)||0), 0);
-          guardarCache('historial', histData);
-        }
-      } catch {}
-    }
-
-    // chart
-    if (chartR.status === 'fulfilled') {
-      try {
-        const chartData = await chartR.value.json();
-        guardarCache('chart', chartData);
-        renderHomeBalance(chartData, ingresosTotal, egresosTotal);
+        const balData = await balR.value.json();
+        guardarCache('balance_json', balData);
+        renderHomeBalance(balData);
       } catch { huboError = true; }
     } else { huboError = true; }
+
+    // chart — seguimos cargando para gráficos; no lo usamos para el banner
+    // (se cargará solo cuando se abra la sub-página Gráficos)
 
     // hoy
     if (hoyR.status === 'fulfilled') {
@@ -1280,24 +1268,16 @@ async function confirmarComoEgreso(idx, btn) {
   }
 }
 
-function renderHomeBalance(data, ingresosTotal, egresosTotal) {
-  // Priorizar totales reales calculados directamente de Egresos/Ingresos
-  // si están disponibles. Fallback al método anterior (chart).
-  let sueldo, egresos, balance;
-  if (ingresosTotal !== undefined && egresosTotal !== undefined) {
-    sueldo = ingresosTotal;
-    egresos = egresosTotal;
-    balance = sueldo - egresos;
-  } else {
-    sueldo = data.sueldo || 0;
-    egresos = (data.gastos || []).reduce((a,b) => a + b.valor, 0);
-    balance = sueldo - egresos;
-  }
+function renderHomeBalance(data) {
+  // data viene de cmd=balance_json: { ingresos, egresos, balance }
+  const ingresos = parseFloat(data.ingresos) || 0;
+  const egresos  = parseFloat(data.egresos)  || 0;
+  const balance  = parseFloat(data.balance)  || 0;
   const el = document.getElementById('home-balance-val');
   el.textContent = (balance >= 0 ? '' : '-') + '$' + Math.abs(balance).toFixed(2);
-  el.className = 'home-balance-val' + (balance < 0 ? ' danger' : balance < sueldo * 0.1 ? ' warn' : '');
-  document.getElementById('home-ingresos').textContent = '↑ $' + sueldo.toFixed(2);
-  document.getElementById('home-egresos').textContent = '↓ $' + egresos.toFixed(2);
+  el.className = 'home-balance-val' + (balance < 0 ? ' danger' : balance < ingresos * 0.1 ? ' warn' : '');
+  document.getElementById('home-ingresos').textContent = '↑ $' + ingresos.toFixed(2);
+  document.getElementById('home-egresos').textContent  = '↓ $' + egresos.toFixed(2);
 }
 
 function renderHomeHoy(txt) {
@@ -1467,6 +1447,10 @@ async function renderSuscripcionesUI(bodyEl) {
       <input id="sub-nombre" placeholder="Nombre (ej: Netflix)" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
       <input id="sub-monto" placeholder="Monto $" type="text" inputmode="decimal" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
       <input id="sub-dia" placeholder="Día de cobro (1-31)" type="number" min="1" max="31" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
+      <select id="sub-cat" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;">
+        <option value="">Categoría...</option>
+        ${CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
       <select id="sub-met" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:10px;">
         <option value="">Método de pago...</option>
         ${METS_SUB.map(m=>`<option value="${m}">${m}</option>`).join('')}
@@ -1502,10 +1486,11 @@ async function guardarNuevaSub() {
   const nombre = document.getElementById('sub-nombre').value.trim();
   const monto  = document.getElementById('sub-monto').value.replace(',','.');
   const dia    = document.getElementById('sub-dia').value;
+  const cat    = document.getElementById('sub-cat')?.value || '';
   const metodo = document.getElementById('sub-met').value;
   if (!nombre || !monto || !dia) { mostrarToast('Completa nombre, monto y día'); return; }
   try {
-    const params = new URLSearchParams({ cmd:'add_suscripcion', nombre, monto, dia, metodo });
+    const params = new URLSearchParams({ cmd:'add_suscripcion', nombre, monto, dia, categoria: cat, metodo });
     const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
     const txt = await res.text();
     if (txt.includes('✅')) {
@@ -1633,7 +1618,7 @@ function verificarPresupuestoAlRegistrar(cat) {
 function setFiltroHist(filtro) {
   filtroActivo = filtro;
   document.querySelectorAll('.hist-filter-btn').forEach((btn, i) => {
-    const vals = ['todos','Transporte','Comida','Ocio','Tienda','Trámites','Family','Arriendo','Necesidad','Herramienta','Estado cuenta','Diners','Visa Signature','Titanium Euphoria','DeUna!','Transfer BP'];
+    const vals = ['todos','Transporte','Comida','Ocio','Tienda','Trámites','Family','Arriendo','Necesidad','Herramienta','Estado cuenta','Diners','Visa Signature','Titanium Euphoria','DeUna!','Transfer BP','Vestimenta','Salud / Cuidado Personal'];
     btn.classList.toggle('active', vals[i] === filtro);
   });
   aplicarFiltroHist();
@@ -1820,12 +1805,12 @@ async function cargarPresupuestos() {
 
 // ── HISTÓRICO ─────────────────────────────────────────────
 async function cargarHistorico() {
-  const cached = leerCache('historico');
+  const cached = leerCache('historico_v2');
   if (cached) renderHistorico(cached.data);
   try {
     const res = await fetch(scriptUrl + '?cmd=historico&n=6', { redirect: 'follow' });
     const data = await res.json();
-    guardarCache('historico', data);
+    guardarCache('historico_v2', data);
     renderHistorico(data);
   } catch(e) { if (!cached) document.getElementById('hist-resumen-lista').innerHTML = '<p class="error">Sin conexión.</p>'; }
 }
@@ -1865,7 +1850,9 @@ async function ejecutarComparar() {
   resultado.innerHTML = '<p style="color:#555;font-size:13px;">Comparando...</p>';
   try {
     const res = await fetch(scriptUrl + '?cmd=comparar&mes1=' + mes1 + '&mes2=' + mes2 + '&anio1=' + anio1 + '&anio2=' + anio2, { redirect: 'follow' });
-    const data = await res.json();
+    const txt = await res.text();
+    let data;
+    try { data = JSON.parse(txt); } catch(e2) { resultado.innerHTML = '<p class="error">Respuesta inválida del servidor: ' + txt.substring(0,100) + '</p>'; return; }
     const cats = data.categorias;
     const filas = cats.map(cat => {
       const v1 = data.mes1.cats[cat]||0, v2 = data.mes2.cats[cat]||0;
@@ -1877,7 +1864,7 @@ async function ejecutarComparar() {
     }).join('');
     const delta = data.mes1.total - data.mes2.total;
     resultado.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:10px;font-size:11px;color:#555;text-align:right;"><span style="flex:1;text-align:left;">Categoría</span><span style="width:70px;color:#7fb4d4;font-weight:600;">${data.mes1.label}</span><span style="width:70px;color:#d47fc0;font-weight:600;">${data.mes2.label}</span><span style="width:50px;">Δ</span></div>${filas}<div class="comp-totals"><div class="comp-total-item"><div class="comp-total-label">${data.mes1.label}</div><div class="comp-total-val" style="color:#7fb4d4;">$${data.mes1.total.toFixed(2)}</div></div><div class="comp-total-item"><div class="comp-total-label">Diferencia</div><div class="comp-total-val" style="${delta>0?'color:#e07070':'color:#7fd4a0'}">${delta>0?'+':''}$${delta.toFixed(2)}</div></div><div class="comp-total-item"><div class="comp-total-label">${data.mes2.label}</div><div class="comp-total-val" style="color:#d47fc0;">$${data.mes2.total.toFixed(2)}</div></div></div>`;
-  } catch(e) { resultado.innerHTML = '<p class="error">Error.</p>'; }
+  } catch(e) { resultado.innerHTML = '<p class="error">Sin conexión o error: ' + e.message + '</p>'; }
 }
 
 // ── PROYECCIÓN ────────────────────────────────────────────
