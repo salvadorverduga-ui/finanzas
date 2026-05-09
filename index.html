@@ -355,15 +355,12 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .dif-tarjeta-cuota { font-size: 13px; font-weight: 600; color: #e8a838; }
 .dif-tarjeta-deuda { font-size: 11px; color: #555; margin-top: 2px; }
 .alert-banner.diferido { background: #0e1a1a; border: 1px solid #1a4a4a; color: #7fd4b4; }
-
-/* ── UMBRAL DIFERIDO ── */
 .umbral-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .umbral-label { font-size: 13px; color: #e0e0e0; }
 .umbral-sub { font-size: 11px; color: #555; margin-top: 2px; }
 .umbral-input-wrap { display: flex; align-items: center; gap: 6px; }
 .umbral-input { background: #111; border: 1px solid #333; border-radius: 8px; color: #7fd4a0; font-size: 16px; font-weight: 700; padding: 6px 10px; width: 72px; outline: none; text-align: center; }
 .umbral-save { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 8px; color: #7fd4a0; font-size: 12px; padding: 6px 12px; cursor: pointer; }
-/* ── CONVERTIR A DIFERIDO ── */
 .convert-btn { background: #1a1a2a; border: 1px solid #3a2a5a; border-radius: 8px; color: #b49fd4; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
 </style>
 </head>
@@ -724,7 +721,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <button class="umbral-save" onclick="guardarUmbral()">OK</button>
         </div>
       </div>
-      <p style="color:#444;font-size:11px;padding:0 2px;line-height:1.6;">Gastos automáticos de Diners o Visa iguales o mayores a este monto quedan en "revisar" en lugar de confirmarse directo, para que puedas decidir si son diferidos.</p>
+      <p style="color:#444;font-size:11px;padding:0 2px;line-height:1.6;">Gastos de Diners o Visa iguales o mayores a este monto quedan en "revisar" para que puedas decidir si son diferidos.</p>
     </div>
   </div>
 
@@ -2182,6 +2179,8 @@ async function guardarNuevoDif() {
   }
 
   btn.textContent = 'Guardar'; btn.disabled = false;
+}
+
 // ── UMBRAL DIFERIDOS ─────────────────────────────────────────
 async function cargarUmbral() {
   try {
@@ -2211,17 +2210,13 @@ async function guardarUmbral() {
 function convertirADiferido(fila) {
   const r = historialData.find(x => x.fila === fila);
   if (!r) return;
-  // Pre-llenar modal de nuevo diferido con datos del egreso
   document.getElementById('dif-nombre').value = r.descripcion;
   document.getElementById('dif-monto-total').value = r.monto;
   document.getElementById('dif-cuotas-pagadas').value = '0';
-  // Seleccionar método si coincide
   const metMap = { 'Diners': 'Diners', 'Visa Signature': 'Visa Signature', 'DeUna!': 'DeUna!', 'Transfer BP': 'Transfer BP' };
   if (metMap[r.metodo]) document.getElementById('dif-met').value = metMap[r.metodo];
-  // Seleccionar categoría si coincide
   if (r.categoria) document.getElementById('dif-cat').value = r.categoria;
   calcularCuotaPreview();
-  // Abrir modal diferido
   document.getElementById('modal-dif').classList.add('visible');
   mostrarToast('💳 Completá las cuotas y día de cobro');
 }
