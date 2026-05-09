@@ -407,6 +407,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     <div class="alert-banner subs" id="alert-subs"></div>
     <div class="alert-banner presup" id="alert-presup"></div>
     <div class="alert-banner diferido" id="alert-diferido"></div>
+    <div class="alert-banner subs" id="alert-revisar" style="display:none">
+      <div class="alert-banner-title">💳 Gastos para clasificar como diferido</div>
+      <div id="alert-revisar-body" style="margin:6px 0 10px;line-height:1.7;"></div>
+      <button onclick="mostrarSubPage('diferidos')" style="background:#1a2a3a;border:1px solid #2a4a6a;border-radius:8px;color:#7fb4d4;font-size:12px;padding:7px 12px;cursor:pointer;width:100%;">Ver diferidos →</button>
+    </div>
 
     <!-- Balance grande -->
     <div class="home-balance">
@@ -1041,41 +1046,87 @@ async function cargarHome() {
   if (cachedDif?.data) verificarAlertaDiferidos(cachedDif.data);
 
   try {
-    const [chartRes, hoyRes, subsRes, presRes, difRes] = await Promise.all([
+    const resultados = await Promise.allSettled([
       fetch(urlConMes('chart'), { redirect: 'follow' }),
       fetch(urlConMes('hoy'), { redirect: 'follow' }),
       fetch(urlConMes('suscripciones'), { redirect: 'follow' }),
       fetch(urlConMes('presupuestos'), { redirect: 'follow' }),
-      fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' })
+      fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' }),
+      fetch(scriptUrl + '?cmd=pendientes_revisar', { redirect: 'follow' })
     ]);
-    const chartData = await chartRes.json();
-    guardarCache('chart', chartData);
-    renderHomeBalance(chartData);
 
-    const hoyTxt = await hoyRes.text();
-    guardarCache('hoy_raw', hoyTxt);
-    renderHomeHoy(hoyTxt);
+    const [chartR, hoyR, subsR, presR, difR, pendR] = resultados;
+    let huboError = false;
 
-    const subsTxt = await subsRes.text();
+    // chart
+    if (chartR.status === 'fulfilled') {
+      try {
+        const chartData = await chartR.value.json();
+        guardarCache('chart', chartData);
+        renderHomeBalance(chartData);
+      } catch { huboError = true; }
+    } else { huboError = true; }
+
+    // hoy
+    if (hoyR.status === 'fulfilled') {
+      try {
+        const hoyTxt = await hoyR.value.text();
+        guardarCache('hoy_raw', hoyTxt);
+        renderHomeHoy(hoyTxt);
+      } catch { huboError = true; }
+    } else { huboError = true; }
+
+    // suscripciones
     let subsItems = [];
-    try { const j = JSON.parse(subsTxt); subsItems = Array.isArray(j) ? j : []; } catch {}
-    guardarCache('suscripciones', subsItems);
+    if (subsR.status === 'fulfilled') {
+      try {
+        const subsTxt = await subsR.value.text();
+        const j = JSON.parse(subsTxt);
+        subsItems = Array.isArray(j) ? j : [];
+        guardarCache('suscripciones', subsItems);
+      } catch {}
+    }
     verificarAlertas(subsItems, null);
 
-    const presData = await presRes.json();
-    guardarCache('presupuestos', presData);
-    presupuestosData = Array.isArray(presData) ? presData : [];
-    verificarAlertas(subsItems, presupuestosData);
+    // presupuestos
+    if (presR.status === 'fulfilled') {
+      try {
+        const presData = await presR.value.json();
+        guardarCache('presupuestos', presData);
+        presupuestosData = Array.isArray(presData) ? presData : [];
+        verificarAlertas(subsItems, presupuestosData);
+      } catch {}
+    }
 
-    try {
-      const difData = await difRes.json();
-      if (Array.isArray(difData)) {
-        guardarCache('diferidos', difData);
-        verificarAlertaDiferidos(difData);
-      }
-    } catch {}
+    // diferidos
+    if (difR.status === 'fulfilled') {
+      try {
+        const difData = await difR.value.json();
+        if (Array.isArray(difData)) {
+          guardarCache('diferidos', difData);
+          verificarAlertaDiferidos(difData);
+        }
+      } catch {}
+    }
 
-    mostrarOfflineBanner(false);
+    // pendientes revisar
+    if (pendR.status === 'fulfilled') {
+      try {
+        const pendData = await pendR.value.json();
+        const banner  = document.getElementById('alert-revisar');
+        const body    = document.getElementById('alert-revisar-body');
+        if (Array.isArray(pendData) && pendData.length > 0) {
+          body.innerHTML = pendData.map(p =>
+            `• <strong>${p.comercio}</strong> $${p.monto} · ${p.metodo} · ${p.fecha}`
+          ).join('<br>');
+          banner.style.display = 'block';
+        } else {
+          banner.style.display = 'none';
+        }
+      } catch {}
+    }
+
+    mostrarOfflineBanner(huboError);
   } catch(e) {
     mostrarOfflineBanner(true);
   }
