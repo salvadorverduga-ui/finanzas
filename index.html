@@ -355,13 +355,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 .dif-tarjeta-cuota { font-size: 13px; font-weight: 600; color: #e8a838; }
 .dif-tarjeta-deuda { font-size: 11px; color: #555; margin-top: 2px; }
 .alert-banner.diferido { background: #0e1a1a; border: 1px solid #1a4a4a; color: #7fd4b4; }
-.umbral-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.umbral-label { font-size: 13px; color: #e0e0e0; }
-.umbral-sub { font-size: 11px; color: #555; margin-top: 2px; }
-.umbral-input-wrap { display: flex; align-items: center; gap: 6px; }
-.umbral-input { background: #111; border: 1px solid #333; border-radius: 8px; color: #7fd4a0; font-size: 16px; font-weight: 700; padding: 6px 10px; width: 72px; outline: none; text-align: center; }
-.umbral-save { background: #1a3a2a; border: 1px solid #2a5a3a; border-radius: 8px; color: #7fd4a0; font-size: 12px; padding: 6px 12px; cursor: pointer; }
-.convert-btn { background: #1a1a2a; border: 1px solid #3a2a5a; border-radius: 8px; color: #b49fd4; font-size: 12px; padding: 6px 10px; cursor: pointer; flex: 1; }
 </style>
 </head>
 <body>
@@ -613,11 +606,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <div class="analisis-text"><strong>Diferidos</strong><span>Cuotas activas y progreso</span></div>
           <span class="analisis-arrow">›</span>
         </div>
-        <div class="analisis-item" onclick="mostrarSubPage('configuracion')">
-          <span class="analisis-icon">⚙️</span>
-          <div class="analisis-text"><strong>Configuración</strong><span>Umbral diferidos y ajustes</span></div>
-          <span class="analisis-arrow">›</span>
-        </div>
       </div>
     </div>
 
@@ -706,22 +694,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       </div>
       <button class="dif-nuevo-btn" onclick="abrirModalDif()">+ Nuevo diferido</button>
       <div id="dif-lista"><p style="color:#555;font-size:13px;">Cargando...</p></div>
-    </div>
-
-    <div class="sub-page" id="sub-configuracion">
-      <button class="back-btn" onclick="volverAnalisis()">← Análisis</button>
-      <div class="umbral-card">
-        <div>
-          <div class="umbral-label">🎯 Umbral diferidos</div>
-          <div class="umbral-sub">Diners/Visa sobre este monto → revisar</div>
-        </div>
-        <div class="umbral-input-wrap">
-          <span style="color:#555;font-size:13px;">$</span>
-          <input class="umbral-input" type="number" id="umbral-input" min="0" max="9999" step="10" value="80" />
-          <button class="umbral-save" onclick="guardarUmbral()">OK</button>
-        </div>
-      </div>
-      <p style="color:#444;font-size:11px;padding:0 2px;line-height:1.6;">Gastos de Diners o Visa iguales o mayores a este monto quedan en "revisar" para que puedas decidir si son diferidos.</p>
     </div>
   </div>
 
@@ -1018,7 +990,6 @@ function mostrarSubPage(nombre) {
   if (nombre === 'historico') cargarHistorico();
   if (nombre === 'proyeccion') cargarProyeccion();
   if (nombre === 'diferidos') cargarDiferidos();
-  if (nombre === 'configuracion') cargarUmbral();
 }
 
 function volverAnalisis() {
@@ -1398,7 +1369,6 @@ async function cargarHistorial() {
         <div class="historial-acciones">
           <button class="edit-btn" onclick="toggleEdit(${r.fila})">✏️</button>
           <button class="repeat-btn" onclick="repetirGasto(${r.fila})">🔁</button>
-          ${r.tipo !== 'ingreso' ? `<button class="convert-btn" onclick="convertirADiferido(${r.fila})">💳 Diferido</button>` : ''}
           <button class="delete-btn" onclick="eliminar(${r.fila})">🗑</button>
         </div>
         <div class="historial-form" id="form-${r.fila}">
@@ -2163,63 +2133,3 @@ async function guardarNuevoDif() {
 
   try {
     const params = new URLSearchParams({
-      cmd: 'nuevo_diferido',
-      nombre, montoCuota, diaCobro, categoria, metodo,
-      cuotasTotal, cuotasPagadas
-    });
-    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
-    const txt = await res.text();
-    mostrarToast(txt);
-    if (txt.includes('✅')) {
-      cerrarModalDif();
-      cargarDiferidos(); // recargar lista
-    }
-  } catch(e) {
-    mostrarToast('Error al guardar');
-  }
-
-  btn.textContent = 'Guardar'; btn.disabled = false;
-}
-
-// ── UMBRAL DIFERIDOS ─────────────────────────────────────────
-async function cargarUmbral() {
-  try {
-    const res = await fetch(scriptUrl + '?cmd=get_umbral', { redirect: 'follow' });
-    const data = await res.json();
-    if (data.umbral !== undefined) {
-      document.getElementById('umbral-input').value = data.umbral;
-    }
-  } catch(e) { mostrarToast('Error al cargar umbral'); }
-}
-
-async function guardarUmbral() {
-  const valor = parseFloat(document.getElementById('umbral-input').value);
-  if (isNaN(valor) || valor < 0) { mostrarToast('Valor inválido'); return; }
-  try {
-    const res = await fetch(scriptUrl + '?cmd=set_umbral&valor=' + valor, { redirect: 'follow' });
-    const data = await res.json();
-    if (data.ok) {
-      mostrarToast('✅ Umbral actualizado a $' + valor);
-    } else {
-      mostrarToast('Error: ' + (data.error || 'desconocido'));
-    }
-  } catch(e) { mostrarToast('Error al guardar umbral'); }
-}
-
-// ── CONVERTIR A DIFERIDO ─────────────────────────────────────
-function convertirADiferido(fila) {
-  const r = historialData.find(x => x.fila === fila);
-  if (!r) return;
-  document.getElementById('dif-nombre').value = r.descripcion;
-  document.getElementById('dif-monto-total').value = r.monto;
-  document.getElementById('dif-cuotas-pagadas').value = '0';
-  const metMap = { 'Diners': 'Diners', 'Visa Signature': 'Visa Signature', 'DeUna!': 'DeUna!', 'Transfer BP': 'Transfer BP' };
-  if (metMap[r.metodo]) document.getElementById('dif-met').value = metMap[r.metodo];
-  if (r.categoria) document.getElementById('dif-cat').value = r.categoria;
-  calcularCuotaPreview();
-  document.getElementById('modal-dif').classList.add('visible');
-  mostrarToast('💳 Completá las cuotas y día de cobro');
-}
-</script>
-</body>
-</html>
