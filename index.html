@@ -442,6 +442,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <button class="btn" onclick="abrirSheet('egresos', 'Egresos')"><span class="icon">📉</span>Egresos</button>
         <button class="btn" onclick="consultarSuscripciones()"><span class="icon">🔄</span>Suscripciones</button>
         <button class="btn" onclick="abrirSheet('categorias', 'Categorías')"><span class="icon">📊</span>Categorías</button>
+        <button class="btn amber" onclick="abrirSheetFn(clasificarSinClasificar)" id="btn-clasificar" style="display:none"><span class="icon">🏷️</span><span class="label">Clasificar</span></button>
       </div>
     </div>
 
@@ -656,13 +657,19 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
       <div id="hist-resumen-lista"></div>
     </div>
 
-    <div class="sub-page" id="sub-comparar">
+
       <button class="back-btn" onclick="volverAnalisis()">← Análisis</button>
-      <div class="comp-selector">
-        <select id="comp-mes1"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
-        <select id="comp-mes2"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
-        <button class="comp-btn" onclick="ejecutarComparar()">Ver</button>
+      <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+        <span style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Mes A</span>
+        <select id="comp-mes1" style="background:#111;border:1px solid #333;border-radius:8px;color:#7fb4d4;font-size:13px;padding:8px;flex:1;outline:none;"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
+        <select id="comp-anio1" style="background:#111;border:1px solid #333;border-radius:8px;color:#7fb4d4;font-size:13px;padding:8px;width:72px;outline:none;"></select>
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;">
+        <span style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Mes B</span>
+        <select id="comp-mes2" style="background:#111;border:1px solid #333;border-radius:8px;color:#d47fc0;font-size:13px;padding:8px;flex:1;outline:none;"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
+        <select id="comp-anio2" style="background:#111;border:1px solid #333;border-radius:8px;color:#d47fc0;font-size:13px;padding:8px;width:72px;outline:none;"></select>
+      </div>
+      <button class="comp-btn" style="width:100%;margin-bottom:12px;" onclick="ejecutarComparar()">Comparar →</button>
       <div id="comp-resultado"></div>
     </div>
 
@@ -727,6 +734,22 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </div>
       </div>
       <p style="color:#444;font-size:11px;padding:0 2px;line-height:1.6;">Gastos de Diners o Visa iguales o mayores a este monto quedan en "revisar" para que puedas decidir si son diferidos.</p>
+
+      <!-- ── Presupuestos por categoría ── -->
+      <div style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;padding:0 2px;">Presupuestos por categoría</div>
+      <div id="config-pres-lista"><p style="color:#444;font-size:12px;">Cargando...</p></div>
+      <div style="background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:14px;margin-top:10px;">
+        <div style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Nuevo / editar límite</div>
+        <select id="config-pres-cat" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;">
+          <option value="">Categoría...</option>
+          ${(()=> ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta"].map(c=>`<option value="${c}">${c}</option>`).join(''))()}
+        </select>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input id="config-pres-limite" type="number" placeholder="Límite $" min="0" step="5" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#7fd4a0;font-size:15px;font-weight:700;padding:9px 10px;flex:1;outline:none;" />
+          <input id="config-pres-icono" type="text" placeholder="Icono" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;padding:9px 10px;width:52px;outline:none;text-align:center;" />
+        </div>
+        <button onclick="guardarPresupuestoConfig()" style="width:100%;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">Guardar límite</button>
+      </div>
     </div>
   </div>
 
@@ -976,9 +999,27 @@ function iniciarApp() {
   }
 
   document.getElementById('month-select').value = mesSeleccionado;
+
+  // Poblar selectores de año del comparador
+  ['comp-anio1','comp-anio2'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (let y = anioSeleccionado - 2; y <= anioSeleccionado; y++) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (y === anioSeleccionado) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  });
+
   const m1 = mesSeleccionado, m2 = m1 > 1 ? m1 - 1 : 12;
   document.getElementById('comp-mes1').value = m1;
   document.getElementById('comp-mes2').value = m2;
+  if (m2 === 12) {
+    const a2 = document.getElementById('comp-anio2');
+    if (a2) a2.value = anioSeleccionado - 1;
+  }
   renderFavs();
   cargarHome();
   if (!sheetsUrl) {
@@ -1023,7 +1064,7 @@ function mostrarSubPage(nombre) {
   if (nombre === 'historico') cargarHistorico();
   if (nombre === 'proyeccion') cargarProyeccion();
   if (nombre === 'diferidos') cargarDiferidos();
-  if (nombre === 'configuracion') cargarUmbral();
+  if (nombre === 'configuracion') { cargarUmbral(); cargarPresupuestosConfig(); }
 }
 
 function volverAnalisis() {
@@ -1035,7 +1076,7 @@ function volverAnalisis() {
 async function cargarHome() {
   // Cargar balance (desde caché primero)
   const cachedChart = leerCache('chart');
-  if (cachedChart?.data) renderHomeBalance(cachedChart.data);
+  if (cachedChart?.data) renderHomeBalance(cachedChart.data, undefined, undefined);
 
   // Cargar gastos de hoy (desde caché primero)
   const cachedHoy = leerCache('hoy_raw');
@@ -1052,18 +1093,40 @@ async function cargarHome() {
       fetch(urlConMes('suscripciones'), { redirect: 'follow' }),
       fetch(urlConMes('presupuestos'), { redirect: 'follow' }),
       fetch(scriptUrl + '?cmd=diferidos', { redirect: 'follow' }),
-      fetch(scriptUrl + '?cmd=pendientes_revisar', { redirect: 'follow' })
+      fetch(scriptUrl + '?cmd=pendientes_revisar', { redirect: 'follow' }),
+      fetch(urlConMes('ingresos_detalle'), { redirect: 'follow' }),
+      fetch(urlConMes('historial'), { redirect: 'follow' })
     ]);
 
-    const [chartR, hoyR, subsR, presR, difR, pendR] = resultados;
+    const [chartR, hoyR, subsR, presR, difR, pendR, ingR, histR] = resultados;
     let huboError = false;
+    let ingresosTotal = undefined, egresosTotal = undefined;
+
+    // ingresos reales del mes
+    if (ingR.status === 'fulfilled') {
+      try {
+        const ingData = await ingR.value.json();
+        if (ingData && ingData.total !== undefined) ingresosTotal = parseFloat(ingData.total) || 0;
+      } catch {}
+    }
+
+    // egresos reales del mes desde historial
+    if (histR.status === 'fulfilled') {
+      try {
+        const histData = await histR.value.json();
+        if (Array.isArray(histData)) {
+          egresosTotal = histData.reduce((s, x) => s + (parseFloat(x.monto)||0), 0);
+          guardarCache('historial', histData);
+        }
+      } catch {}
+    }
 
     // chart
     if (chartR.status === 'fulfilled') {
       try {
         const chartData = await chartR.value.json();
         guardarCache('chart', chartData);
-        renderHomeBalance(chartData);
+        renderHomeBalance(chartData, ingresosTotal, egresosTotal);
       } catch { huboError = true; }
     } else { huboError = true; }
 
@@ -1118,6 +1181,7 @@ async function cargarHome() {
     }
 
     mostrarOfflineBanner(huboError);
+    verificarSinClasificar();
   } catch(e) {
     mostrarOfflineBanner(true);
   }
@@ -1216,10 +1280,19 @@ async function confirmarComoEgreso(idx, btn) {
   }
 }
 
-function renderHomeBalance(data) {
-  const sueldo = data.sueldo || 0;
-  const egresos = (data.gastos || []).reduce((a,b) => a + b.valor, 0);
-  const balance = sueldo - egresos;
+function renderHomeBalance(data, ingresosTotal, egresosTotal) {
+  // Priorizar totales reales calculados directamente de Egresos/Ingresos
+  // si están disponibles. Fallback al método anterior (chart).
+  let sueldo, egresos, balance;
+  if (ingresosTotal !== undefined && egresosTotal !== undefined) {
+    sueldo = ingresosTotal;
+    egresos = egresosTotal;
+    balance = sueldo - egresos;
+  } else {
+    sueldo = data.sueldo || 0;
+    egresos = (data.gastos || []).reduce((a,b) => a + b.valor, 0);
+    balance = sueldo - egresos;
+  }
   const el = document.getElementById('home-balance-val');
   el.textContent = (balance >= 0 ? '' : '-') + '$' + Math.abs(balance).toFixed(2);
   el.className = 'home-balance-val' + (balance < 0 ? ' danger' : balance < sueldo * 0.1 ? ' warn' : '');
@@ -1366,19 +1439,93 @@ async function detalleIngresos() {
 
 async function consultarSuscripciones() {
   document.getElementById('sheet-overlay').classList.add('visible');
-  document.getElementById('sheet-title').textContent = 'Suscripciones activas';
+  document.getElementById('sheet-title').textContent = 'Suscripciones';
   const bodyEl = document.getElementById('sheet-body');
   bodyEl.innerHTML = '<span class="loading">Cargando...</span>';
-  const cached = leerCache('suscripciones');
-  if (cached?.data) bodyEl.innerHTML = '<div class="subs-wrap">' + cached.data.map(s => `<span class="sub-bubble">${s}</span>`).join('') + '</div>';
+  await renderSuscripcionesUI(bodyEl);
+}
+
+async function renderSuscripcionesUI(bodyEl) {
+  let items = [];
   try {
-    const res = await fetch(urlConMes('suscripciones'), { redirect: 'follow' });
+    const res = await fetch(urlConMes('suscripciones_detalle'), { redirect: 'follow' });
     const txt = await res.text();
-    let items = [];
     try { const j = JSON.parse(txt); items = Array.isArray(j) ? j : []; } catch {}
-    guardarCache('suscripciones', items);
-    bodyEl.innerHTML = items.length ? '<div class="subs-wrap">' + items.map(s => `<span class="sub-bubble">${s}</span>`).join('') + '</div>' : '<span style="color:#555;">Sin suscripciones.</span>';
-  } catch(e) { if (!cached) bodyEl.innerHTML = '<span class="error">Sin conexión.</span>'; }
+    guardarCache('suscripciones_det', items);
+  } catch(e) {
+    const cached = leerCache('suscripciones_det');
+    if (cached?.data) items = cached.data;
+  }
+
+  const METS_SUB = ['Diners','Visa Signature','Titanium Euphoria','DeUna!','Transfer BP'];
+  const html = `
+    <div style="margin-bottom:14px;">
+      <button onclick="abrirFormSub()" style="background:#1a3a2a;border:1px solid #2a5a3a;border-radius:10px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;width:100%;cursor:pointer;">+ Nueva suscripción</button>
+    </div>
+    <div id="form-nueva-sub" style="display:none;background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Nueva suscripción</div>
+      <input id="sub-nombre" placeholder="Nombre (ej: Netflix)" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
+      <input id="sub-monto" placeholder="Monto $" type="text" inputmode="decimal" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
+      <input id="sub-dia" placeholder="Día de cobro (1-31)" type="number" min="1" max="31" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;" />
+      <select id="sub-met" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:10px;">
+        <option value="">Método de pago...</option>
+        ${METS_SUB.map(m=>`<option value="${m}">${m}</option>`).join('')}
+      </select>
+      <div style="display:flex;gap:8px;">
+        <button onclick="guardarNuevaSub()" style="flex:1;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">Guardar</button>
+        <button onclick="document.getElementById('form-nueva-sub').style.display='none'" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;color:#888;font-size:13px;padding:10px;cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+    <div id="lista-subs">
+      ${items.length === 0 ? '<p style="color:#555;font-size:13px;">Sin suscripciones configuradas.</p>' :
+        items.map((s, i) => {
+          const diasFaltantes = s.dia - new Date().getDate();
+          const alerta = (diasFaltantes >= 0 && diasFaltantes <= 7) ? '⚠️ ' : '';
+          return `<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:#e0e0e0;">${alerta}${s.nombre}</div>
+              <div style="font-size:11px;color:#555;margin-top:3px;">$${s.monto} · día ${s.dia} · ${s.metodo||'—'}</div>
+            </div>
+            <button onclick="eliminarSub(${s.fila}, this)" style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:8px;color:#e24b4a;font-size:12px;padding:6px 10px;cursor:pointer;flex-shrink:0;">🗑</button>
+          </div>`;
+        }).join('')}
+    </div>`;
+  bodyEl.innerHTML = html;
+}
+
+function abrirFormSub() {
+  document.getElementById('form-nueva-sub').style.display = 'block';
+  document.getElementById('sub-nombre').focus();
+}
+
+async function guardarNuevaSub() {
+  const nombre = document.getElementById('sub-nombre').value.trim();
+  const monto  = document.getElementById('sub-monto').value.replace(',','.');
+  const dia    = document.getElementById('sub-dia').value;
+  const metodo = document.getElementById('sub-met').value;
+  if (!nombre || !monto || !dia) { mostrarToast('Completa nombre, monto y día'); return; }
+  try {
+    const params = new URLSearchParams({ cmd:'add_suscripcion', nombre, monto, dia, metodo });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    if (txt.includes('✅')) {
+      mostrarToast('✅ Suscripción guardada');
+      await renderSuscripcionesUI(document.getElementById('sheet-body'));
+    } else { mostrarToast(txt); }
+  } catch(e) { mostrarToast('Error al guardar'); }
+}
+
+async function eliminarSub(fila, btn) {
+  if (!confirm('¿Eliminar esta suscripción?')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=del_suscripcion&fila=' + fila, { redirect: 'follow' });
+    const txt = await res.text();
+    if (txt.includes('✅')) {
+      mostrarToast('✅ Suscripción eliminada');
+      await renderSuscripcionesUI(document.getElementById('sheet-body'));
+    } else { mostrarToast(txt); btn.textContent = '🗑'; btn.disabled = false; }
+  } catch(e) { mostrarToast('Error'); btn.textContent = '🗑'; btn.disabled = false; }
 }
 
 // ── FAVORITOS ─────────────────────────────────────────────
@@ -1701,17 +1848,23 @@ function renderHistorico(data) {
   });
   document.getElementById('hist-resumen-lista').innerHTML = data.slice().reverse().map(d => {
     const bc = d.balance >= 0 ? 'color:#7fd4a0' : 'color:#e05252';
-    return `<div class="proy-cat-row"><span class="proy-cat-nombre" style="font-weight:600;color:#e0e0e0;">${d.label}</span><span class="proy-cat-nums"><span style="color:#7fb4d4;margin-right:8px;">↑$${d.ingresos}</span><span style="color:#e07070;margin-right:8px;">↓$${d.egresos}</span><span style="${bc};font-weight:700;">${d.balance>=0?'+':''}$${d.balance}</span></span></div>`;
+    const ing = (parseFloat(d.ingresos)||0).toFixed(2);
+    const egr = (parseFloat(d.egresos)||0).toFixed(2);
+    const bal = parseFloat(d.balance)||0;
+    const balStr = (bal>=0?'+':'') + '$' + Math.abs(bal).toFixed(2);
+    return `<div class="proy-cat-row"><span class="proy-cat-nombre" style="font-weight:600;color:#e0e0e0;">${d.label}</span><span class="proy-cat-nums"><span style="color:#7fb4d4;margin-right:8px;">↑$${ing}</span><span style="color:#e07070;margin-right:8px;">↓$${egr}</span><span style="${bc};font-weight:700;">${balStr}</span></span></div>`;
   }).join('');
 }
 
 async function ejecutarComparar() {
   const mes1 = document.getElementById('comp-mes1').value;
   const mes2 = document.getElementById('comp-mes2').value;
+  const anio1 = document.getElementById('comp-anio1') ? document.getElementById('comp-anio1').value : anioSeleccionado;
+  const anio2 = document.getElementById('comp-anio2') ? document.getElementById('comp-anio2').value : anioSeleccionado;
   const resultado = document.getElementById('comp-resultado');
   resultado.innerHTML = '<p style="color:#555;font-size:13px;">Comparando...</p>';
   try {
-    const res = await fetch(scriptUrl + '?cmd=comparar&mes1=' + mes1 + '&mes2=' + mes2, { redirect: 'follow' });
+    const res = await fetch(scriptUrl + '?cmd=comparar&mes1=' + mes1 + '&mes2=' + mes2 + '&anio1=' + anio1 + '&anio2=' + anio2, { redirect: 'follow' });
     const data = await res.json();
     const cats = data.categorias;
     const filas = cats.map(cat => {
@@ -2316,7 +2469,157 @@ async function guardarNuevoDif() {
   btn.textContent = 'Guardar'; btn.disabled = false;
 }
 
-// ── UMBRAL DIFERIDOS ─────────────────────────────────────────
+// ── CLASIFICAR SIN CLASIFICAR ─────────────────────────────
+let sinClasificarData = [];
+
+async function clasificarSinClasificar() {
+  const titleEl = document.getElementById('sheet-title');
+  const bodyEl = document.getElementById('sheet-body');
+  titleEl.textContent = '🏷️ Sin clasificar';
+  bodyEl.innerHTML = '<span class="loading">Cargando...</span>';
+  try {
+    const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
+    const data = await res.json();
+    sinClasificarData = Array.isArray(data) ? data.filter(r => r.categoria === 'Sin clasificar') : [];
+    renderSinClasificar(bodyEl);
+  } catch(e) {
+    bodyEl.innerHTML = '<span class="error">Error al cargar.</span>';
+  }
+}
+
+function renderSinClasificar(bodyEl) {
+  if (!sinClasificarData.length) {
+    bodyEl.innerHTML = '<p style="color:#7fd4a0;font-size:13px;">✅ No hay gastos sin clasificar este mes.</p>';
+    document.getElementById('btn-clasificar').style.display = 'none';
+    return;
+  }
+  bodyEl.innerHTML = `
+    <p style="color:#888;font-size:12px;margin-bottom:12px;">${sinClasificarData.length} gasto${sinClasificarData.length!==1?'s':''} sin clasificar este mes:</p>
+    ${sinClasificarData.map((r, i) => `
+      <div id="sc-${r.fila}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#e0e0e0;">${r.descripcion}</div>
+            <div style="font-size:11px;color:#555;margin-top:2px;">${r.fecha} · ${r.metodo||'—'}</div>
+          </div>
+          <div style="font-size:15px;font-weight:700;color:#e07070;">$${r.monto}</div>
+        </div>
+        <select id="sc-cat-${r.fila}" style="background:#111;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:8px 10px;width:100%;outline:none;margin-bottom:8px;">
+          <option value="">Seleccionar categoría...</option>
+          ${CATS.map(c=>`<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <button onclick="confirmarClasificacion(${r.fila}, '${r.descripcion.replace(/'/g,"\\'")}', ${r.monto})" style="width:100%;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:9px;cursor:pointer;">
+          ✅ Confirmar
+        </button>
+      </div>
+    `).join('')}`;
+}
+
+async function confirmarClasificacion(fila, desc, monto) {
+  const cat = document.getElementById('sc-cat-' + fila)?.value;
+  if (!cat) { mostrarToast('Selecciona una categoría'); return; }
+  const r = sinClasificarData.find(x => x.fila === fila);
+  if (!r) return;
+  const btn = document.querySelector(`#sc-${fila} button`);
+  if (btn) { btn.textContent = 'Guardando...'; btn.disabled = true; }
+  try {
+    const params = new URLSearchParams({
+      cmd: 'editar', fila,
+      fecha: fechaAInput(r.fecha),
+      monto: r.monto,
+      categoria: cat,
+      metodo: r.metodo || '',
+      descripcion: r.descripcion
+    });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    if (txt.includes('✅')) {
+      mostrarToast('✅ Clasificado como ' + cat);
+      sinClasificarData = sinClasificarData.filter(x => x.fila !== fila);
+      const el = document.getElementById('sc-' + fila);
+      if (el) el.remove();
+      const bodyEl = document.getElementById('sheet-body');
+      if (!sinClasificarData.length) {
+        bodyEl.innerHTML = '<p style="color:#7fd4a0;font-size:13px;">✅ ¡Todos los gastos están clasificados!</p>';
+        document.getElementById('btn-clasificar').style.display = 'none';
+      } else {
+        const counter = bodyEl.querySelector('p');
+        if (counter) counter.textContent = sinClasificarData.length + ' gasto' + (sinClasificarData.length!==1?'s':'')+' sin clasificar este mes:';
+      }
+    } else { mostrarToast(txt); if (btn) { btn.textContent = '✅ Confirmar'; btn.disabled = false; } }
+  } catch(e) { mostrarToast('Error al guardar'); if (btn) { btn.textContent = '✅ Confirmar'; btn.disabled = false; } }
+}
+
+// Actualizar visibilidad del botón Clasificar al cargar el home
+async function verificarSinClasificar() {
+  try {
+    const res = await fetch(urlConMes('historial'), { redirect: 'follow' });
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+    const sc = data.filter(r => r.categoria === 'Sin clasificar');
+    const btn = document.getElementById('btn-clasificar');
+    if (btn) btn.style.display = sc.length > 0 ? 'flex' : 'none';
+  } catch {}
+}
+// ── CONFIG PRESUPUESTOS ──────────────────────────────────────
+async function cargarPresupuestosConfig() {
+  const lista = document.getElementById('config-pres-lista');
+  if (!lista) return;
+  try {
+    const res = await fetch(urlConMes('presupuestos'), { redirect: 'follow' });
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+    if (!items.length) { lista.innerHTML = '<p style="color:#555;font-size:12px;">Sin presupuestos configurados.</p>'; return; }
+    lista.innerHTML = items.map(p => `
+      <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="flex:1;">
+          <span style="font-size:13px;color:#e0e0e0;">${p.icono} ${p.categoria}</span>
+          <span style="font-size:11px;color:#555;margin-left:6px;">${p.pct}% usado</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:14px;font-weight:700;color:#7fd4a0;">$${p.limite}</span>
+          <button onclick="editarPresupuestoConfig('${p.categoria}','${p.icono}',${p.limite})" style="background:#1a2a3a;border:1px solid #2a4a5a;border-radius:6px;color:#7fb4d4;font-size:11px;padding:4px 8px;cursor:pointer;">✏️</button>
+          <button onclick="eliminarPresupuestoConfig('${p.categoria}', this)" style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:6px;color:#e24b4a;font-size:11px;padding:4px 8px;cursor:pointer;">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { if (lista) lista.innerHTML = '<p style="color:#444;font-size:12px;">Sin conexión.</p>'; }
+}
+
+function editarPresupuestoConfig(cat, icono, limite) {
+  const catSel = document.getElementById('config-pres-cat');
+  const limEl  = document.getElementById('config-pres-limite');
+  const icoEl  = document.getElementById('config-pres-icono');
+  if (catSel) catSel.value = cat;
+  if (limEl)  limEl.value = limite;
+  if (icoEl)  icoEl.value = icono;
+}
+
+async function guardarPresupuestoConfig() {
+  const cat    = document.getElementById('config-pres-cat').value;
+  const limite = document.getElementById('config-pres-limite').value;
+  const icono  = document.getElementById('config-pres-icono').value || '📌';
+  if (!cat || !limite) { mostrarToast('Selecciona categoría y límite'); return; }
+  try {
+    const params = new URLSearchParams({ cmd: 'set_presupuesto', categoria: cat, limite, icono });
+    const res = await fetch(scriptUrl + '?' + params.toString(), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt.includes('✅') ? '✅ Límite guardado' : txt);
+    if (txt.includes('✅')) cargarPresupuestosConfig();
+  } catch(e) { mostrarToast('Error al guardar'); }
+}
+
+async function eliminarPresupuestoConfig(cat, btn) {
+  if (!confirm('¿Eliminar el presupuesto de ' + cat + '?')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=del_presupuesto&categoria=' + encodeURIComponent(cat), { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt.includes('✅') ? '✅ Eliminado' : txt);
+    if (txt.includes('✅')) cargarPresupuestosConfig();
+    else { btn.textContent = '🗑'; btn.disabled = false; }
+  } catch(e) { mostrarToast('Error'); btn.textContent = '🗑'; btn.disabled = false; }
+}
+
 async function cargarUmbral() {
   try {
     const res = await fetch(scriptUrl + '?cmd=get_umbral', { redirect: 'follow' });
