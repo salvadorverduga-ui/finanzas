@@ -757,6 +757,79 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <button onclick="guardarPresupuestoConfig()" style="width:100%;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">Guardar límite</button>
       </div>
     </div>
+
+  <!-- ── CUENTAS POR COBRAR ── -->
+  <div class="page" id="page-cobrar">
+    <div class="cobrar-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#e0e0e0;">🤝 Cuentas por cobrar</div>
+        <div style="font-size:12px;color:#555;margin-top:2px;">Lo que te deben</div>
+      </div>
+      <button onclick="abrirModalNuevoDeudor()" style="background:#1a2a1a;border:1px solid #2a5a2a;border-radius:10px;color:#7fd4a0;font-size:13px;padding:8px 14px;cursor:pointer;">+ Deudor</button>
+    </div>
+
+    <!-- Total general pendiente -->
+    <div id="cobrar-total-banner" style="background:linear-gradient(135deg,#1a1e12,#0e150c);border:1px solid #2a3a1a;border-radius:14px;padding:16px 18px;margin-bottom:16px;text-align:center;display:none;">
+      <div style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total pendiente de cobro</div>
+      <div id="cobrar-total-val" style="font-size:32px;font-weight:700;color:#a8e890;">$0.00</div>
+    </div>
+
+    <!-- Lista de deudores -->
+    <div id="cobrar-lista-deudores" style="margin-bottom:16px;">
+      <p style="color:#555;font-size:13px;">Cargando...</p>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo deudor / agregar movimiento -->
+  <div class="sheet-overlay" id="modal-cobrar-add" onclick="cerrarModalCobrar(event)">
+    <div class="sheet-panel" style="padding-bottom:40px;">
+      <div class="sheet-handle"></div>
+      <div id="modal-cobrar-add-title" style="font-size:15px;font-weight:700;color:#e0e0e0;margin-bottom:18px;">Nuevo movimiento</div>
+
+      <div class="form-field">
+        <label>Deudor</label>
+        <input id="cobrar-add-deudor" type="text" placeholder="Nombre del deudor" autocomplete="off">
+      </div>
+      <div class="form-field">
+        <label>Concepto</label>
+        <input id="cobrar-add-concepto" type="text" placeholder="Ej: Préstamo almuerzo, split uber..." autocomplete="off">
+      </div>
+      <div class="form-field">
+        <label>Monto (USD)</label>
+        <input id="cobrar-add-monto" type="number" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div class="form-field">
+        <label>Tipo</label>
+        <div class="pill-group">
+          <div class="pill selected" id="cobrar-tipo-cargo" onclick="selCobrarTipo('cargo')">📤 Me deben (cargo)</div>
+          <div class="pill" id="cobrar-tipo-abono" onclick="selCobrarTipo('abono')">📥 Me pagaron (abono)</div>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Fecha</label>
+        <input id="cobrar-add-fecha" type="date">
+      </div>
+      <div class="form-field">
+        <label>Notas (opcional)</label>
+        <input id="cobrar-add-notas" type="text" placeholder="Detalles adicionales" autocomplete="off">
+      </div>
+      <button class="submit-btn" onclick="guardarMovCobrar()">Guardar</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Detalle de un deudor -->
+  <div class="sheet-overlay" id="modal-cobrar-detalle" onclick="cerrarModalDetalleCobrar(event)">
+    <div class="sheet-panel" style="padding-bottom:40px;">
+      <div class="sheet-handle"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div id="modal-cobrar-nombre" style="font-size:16px;font-weight:700;color:#e0e0e0;"></div>
+        <button onclick="abrirModalAddParaDeudor()" style="background:#1a2a1a;border:1px solid #2a5a2a;border-radius:8px;color:#7fd4a0;font-size:12px;padding:6px 12px;cursor:pointer;">+ Movimiento</button>
+      </div>
+      <div id="modal-cobrar-saldo" style="font-size:26px;font-weight:700;margin-bottom:16px;color:#a8e890;"></div>
+      <div id="modal-cobrar-movs" style="font-size:13px;color:#c0c0c0;line-height:1.8;"></div>
+    </div>
+  </div>
+
   </div>
 
 </div><!-- /app -->
@@ -775,7 +848,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   <div class="nav-item" id="nav-analisis" onclick="switchTab('analisis')">
     <span class="nav-icon">📊</span><span>Análisis</span>
   </div>
-  <div class="nav-item" id="nav-analisis-placeholder" style="flex:1"></div>
+  <div class="nav-item" id="nav-cobrar" onclick="switchTab('cobrar')">
+    <span class="nav-icon">🤝</span><span>Cobrar</span>
+  </div>
 </nav>
 
 <!-- ── BOTTOM SHEET (resultados consultas) ── -->
@@ -1035,7 +1110,7 @@ function iniciarApp() {
 }
 
 // ── NAVEGACIÓN ────────────────────────────────────────────
-const TAB_NAMES = ['home','historial','registrar','analisis'];
+const TAB_NAMES = ['home','historial','registrar','analisis','cobrar'];
 
 function switchTab(tab) {
   TAB_NAMES.forEach(t => {
@@ -1045,6 +1120,7 @@ function switchTab(tab) {
   });
   if (tab === 'historial') cargarHistorial();
   if (tab === 'analisis') volverAnalisis();
+  if (tab === 'cobrar') cargarCobrar();
 }
 
 function onMesChange() {
@@ -2645,6 +2721,175 @@ function convertirADiferido(fila) {
   document.getElementById('modal-dif').classList.add('visible');
   mostrarToast('💳 Completá las cuotas y día de cobro');
 }
+
+// ── CUENTAS POR COBRAR ───────────────────────────────────────
+
+let cobrarDeudorActivo = null;
+let cobrarTipoSeleccionado = 'cargo';
+
+async function cargarCobrar() {
+  const lista = document.getElementById('cobrar-lista-deudores');
+  lista.innerHTML = '<p style="color:#555;font-size:13px;">Cargando...</p>';
+  try {
+    const res = await fetch(scriptUrl + '?cmd=cobrar_resumen', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.error) { lista.innerHTML = '<p style="color:#e07070;">' + data.error + '</p>'; return; }
+
+    const total = data.reduce((s, d) => s + d.saldo, 0);
+    const banner = document.getElementById('cobrar-total-banner');
+    document.getElementById('cobrar-total-val').textContent = '$' + Math.max(0, total).toFixed(2);
+    banner.style.display = data.length > 0 ? 'block' : 'none';
+
+    if (data.length === 0) {
+      lista.innerHTML = '<p style="color:#555;font-size:13px;font-style:italic;text-align:center;margin-top:30px;">Sin cuentas por cobrar 🎉</p>';
+      return;
+    }
+
+    lista.innerHTML = data.map(d => {
+      const saldoColor = d.saldo <= 0 ? '#7fd4a0' : '#e8a838';
+      const saldoLabel = d.saldo <= 0 ? 'Saldado ✓' : '$' + d.saldo.toFixed(2);
+      return `<div onclick="verDeudor('${d.deudor}')" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;-webkit-tap-highlight-color:transparent;">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:#e0e0e0;">${d.deudor}</div>
+          <div style="font-size:11px;color:#555;margin-top:3px;">${d.saldo <= 0 ? 'Sin deuda pendiente' : 'Pendiente de cobro'}</div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:${saldoColor};">${saldoLabel}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#e07070;">Error al cargar. Verifica la URL.</p>';
+  }
+}
+
+async function verDeudor(deudor) {
+  cobrarDeudorActivo = deudor;
+  document.getElementById('modal-cobrar-nombre').textContent = '👤 ' + deudor;
+  document.getElementById('modal-cobrar-saldo').textContent = '...';
+  document.getElementById('modal-cobrar-movs').innerHTML = '<span style="color:#555;">Cargando...</span>';
+  document.getElementById('modal-cobrar-detalle').classList.add('visible');
+
+  try {
+    const res = await fetch(scriptUrl + '?cmd=cobrar_detalle&deudor=' + encodeURIComponent(deudor), { redirect: 'follow' });
+    const data = await res.json();
+    document.getElementById('modal-cobrar-saldo').textContent =
+      data.saldo > 0 ? '$' + data.saldo.toFixed(2) + ' pendiente' :
+      data.saldo < 0 ? 'Te deben $' + Math.abs(data.saldo).toFixed(2) + ' de más' :
+      'Saldado ✓';
+    document.getElementById('modal-cobrar-saldo').style.color =
+      data.saldo > 0 ? '#e8a838' : '#7fd4a0';
+
+    if (!data.movimientos || data.movimientos.length === 0) {
+      document.getElementById('modal-cobrar-movs').innerHTML = '<span style="color:#555;font-style:italic;">Sin movimientos registrados.</span>';
+      return;
+    }
+
+    document.getElementById('modal-cobrar-movs').innerHTML = data.movimientos.map(m => {
+      const esCargo = m.tipo === 'cargo';
+      const icono = esCargo ? '📤' : '📥';
+      const color = esCargo ? '#e07070' : '#7fd4a0';
+      const signo = esCargo ? '+' : '-';
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #1e1e1e;">
+        <div style="font-size:16px;margin-top:1px;">${icono}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:#e0e0e0;font-weight:500;">${m.concepto}</div>
+          ${m.notas ? '<div style="font-size:11px;color:#555;margin-top:1px;">' + m.notas + '</div>' : ''}
+          <div style="font-size:11px;color:#444;margin-top:2px;">${m.fecha} · saldo acum: <strong>$${m.saldoAcum}</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div style="font-size:15px;font-weight:700;color:${color};">${signo}$${m.monto.toFixed(2)}</div>
+          <button onclick="eliminarMovCobrar(${m.fila}, '${deudor}')" style="background:transparent;border:none;color:#3a3a3a;font-size:18px;cursor:pointer;padding:0;line-height:1;" title="Eliminar">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(ex) {
+    document.getElementById('modal-cobrar-movs').innerHTML = '<span style="color:#e07070;">Error al cargar detalle.</span>';
+  }
+}
+
+function abrirModalNuevoDeudor() {
+  cobrarDeudorActivo = null;
+  document.getElementById('cobrar-add-deudor').value = '';
+  document.getElementById('cobrar-add-deudor').removeAttribute('readonly');
+  document.getElementById('cobrar-add-concepto').value = '';
+  document.getElementById('cobrar-add-monto').value = '';
+  document.getElementById('cobrar-add-notas').value = '';
+  document.getElementById('cobrar-add-fecha').value = new Date().toISOString().split('T')[0];
+  selCobrarTipo('cargo');
+  document.getElementById('modal-cobrar-add-title').textContent = 'Nuevo movimiento';
+  document.getElementById('modal-cobrar-add').classList.add('visible');
+}
+
+function abrirModalAddParaDeudor() {
+  document.getElementById('cobrar-add-deudor').value = cobrarDeudorActivo || '';
+  document.getElementById('cobrar-add-deudor').setAttribute('readonly', 'readonly');
+  document.getElementById('cobrar-add-concepto').value = '';
+  document.getElementById('cobrar-add-monto').value = '';
+  document.getElementById('cobrar-add-notas').value = '';
+  document.getElementById('cobrar-add-fecha').value = new Date().toISOString().split('T')[0];
+  selCobrarTipo('cargo');
+  document.getElementById('modal-cobrar-add-title').textContent = 'Movimiento — ' + cobrarDeudorActivo;
+  document.getElementById('modal-cobrar-add').classList.add('visible');
+}
+
+function selCobrarTipo(tipo) {
+  cobrarTipoSeleccionado = tipo;
+  document.getElementById('cobrar-tipo-cargo').classList.toggle('selected', tipo === 'cargo');
+  document.getElementById('cobrar-tipo-abono').classList.toggle('selected', tipo === 'abono');
+}
+
+async function guardarMovCobrar() {
+  const deudor   = document.getElementById('cobrar-add-deudor').value.trim();
+  const concepto = document.getElementById('cobrar-add-concepto').value.trim();
+  const monto    = parseFloat(document.getElementById('cobrar-add-monto').value);
+  const fecha    = document.getElementById('cobrar-add-fecha').value;
+  const notas    = document.getElementById('cobrar-add-notas').value.trim();
+  if (!deudor || !concepto || isNaN(monto) || monto <= 0 || !fecha) {
+    mostrarToast('Completá todos los campos obligatorios');
+    return;
+  }
+  try {
+    const url = scriptUrl + '?cmd=cobrar_add&deudor=' + encodeURIComponent(deudor) +
+      '&concepto=' + encodeURIComponent(concepto) +
+      '&monto=' + monto +
+      '&tipo=' + cobrarTipoSeleccionado +
+      '&fecha=' + fecha +
+      '&notas=' + encodeURIComponent(notas);
+    const res = await fetch(url, { redirect: 'follow' });
+    const txt = await res.text();
+    if (txt.startsWith('✅')) {
+      mostrarToast(txt);
+      cerrarModalCobrarAdd();
+      cargarCobrar();
+      if (cobrarDeudorActivo) verDeudor(cobrarDeudorActivo);
+    } else {
+      mostrarToast('Error: ' + txt);
+    }
+  } catch(ex) { mostrarToast('Error de red'); }
+}
+
+async function eliminarMovCobrar(fila, deudor) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=cobrar_del&fila=' + fila, { redirect: 'follow' });
+    const txt = await res.text();
+    mostrarToast(txt);
+    verDeudor(deudor);
+    cargarCobrar();
+  } catch(ex) { mostrarToast('Error al eliminar'); }
+}
+
+function cerrarModalCobrar(e) {
+  if (e.target === document.getElementById('modal-cobrar-add'))
+    cerrarModalCobrarAdd();
+}
+function cerrarModalCobrarAdd() {
+  document.getElementById('modal-cobrar-add').classList.remove('visible');
+}
+function cerrarModalDetalleCobrar(e) {
+  if (e.target === document.getElementById('modal-cobrar-detalle'))
+    document.getElementById('modal-cobrar-detalle').classList.remove('visible');
+}
+
 </script>
 </body>
 </html>
