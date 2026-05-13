@@ -448,30 +448,15 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
     <div class="section">
       <div class="section-title">Por categoría</div>
-      <div class="btn-grid three">
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Comida'))"><span class="icon">🍔</span><span class="label">Comida</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Transporte'))"><span class="icon">🚗</span><span class="label">Transporte</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Ocio'))"><span class="icon">🎮</span><span class="label">Ocio</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Tienda'))"><span class="icon">🛒</span><span class="label">Tienda</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Trámites'))"><span class="icon">📋</span><span class="label">Trámites</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Family'))"><span class="icon">👨‍👩‍👧</span><span class="label">Family</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Arriendo'))"><span class="icon">🏠</span><span class="label">Arriendo</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Necesidad'))"><span class="icon">🧾</span><span class="label">Necesidad</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Herramienta'))"><span class="icon">🔧</span><span class="label">Herramienta</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Estado cuenta'))"><span class="icon">📊</span><span class="label">Estado cuenta</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Vestimenta'))"><span class="icon">👔</span><span class="label">Vestimenta</span></button>
-        <button class="btn" onclick="abrirSheetFn(()=>detalleCat('Salud / Cuidado Personal'))"><span class="icon">💊</span><span class="label">Salud</span></button>
+      <div class="btn-grid three" id="home-cats-grid">
+        <!-- Fase 5: se genera dinámicamente por poblarUIConConfig() -->
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">Por tarjeta</div>
-      <div class="btn-grid">
-        <button class="btn amber" onclick="abrirSheet('detalle diners','Diners')"><span class="icon">💳</span>Diners</button>
-        <button class="btn amber" onclick="abrirSheet('detalle visa','Visa')"><span class="icon">💳</span>Visa</button>
-        <button class="btn amber" onclick="abrirSheet('detalle titanium','Titanium')"><span class="icon">💳</span>Titanium</button>
-        <button class="btn amber" onclick="abrirSheet('detalle deuna','DeUna')"><span class="icon">📱</span>DeUna</button>
-        <button class="btn amber" onclick="abrirSheet('detalle transfer','Transfer BP')"><span class="icon">🏦</span>Transfer BP</button>
+      <div class="section-title">Por tarjeta / método</div>
+      <div class="btn-grid" id="home-mets-grid">
+        <!-- Fase 5: se genera dinámicamente -->
       </div>
     </div>
 
@@ -634,7 +619,12 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         </div>
         <div class="analisis-item" onclick="mostrarSubPage('configuracion')">
           <span class="analisis-icon">⚙️</span>
-          <div class="analisis-text"><strong>Configuración</strong><span>Umbral diferidos y ajustes</span></div>
+          <div class="analisis-text"><strong>Configuración</strong><span>Umbral, presupuestos y ajustes</span></div>
+          <span class="analisis-arrow">›</span>
+        </div>
+        <div class="analisis-item" onclick="mostrarSubPage('cats-mets')">
+          <span class="analisis-icon">🏷️</span>
+          <div class="analisis-text"><strong>Categorías y medios de pago</strong><span>Agregar, editar o eliminar</span></div>
           <span class="analisis-arrow">›</span>
         </div>
       </div>
@@ -761,6 +751,54 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
           <input id="config-pres-icono" type="text" placeholder="Icono" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;padding:9px 10px;width:52px;outline:none;text-align:center;" />
         </div>
         <button onclick="guardarPresupuestoConfig()" style="width:100%;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">Guardar límite</button>
+      </div>
+    </div>
+
+    <!-- ── Sub-página: Categorías y Métodos de Pago (Fase 5) ── -->
+    <div class="sub-page" id="sub-cats-mets">
+      <button class="back-btn" onclick="volverAnalisis()">← Análisis</button>
+
+      <!-- SECCIÓN CATEGORÍAS -->
+      <div style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:0 2px;">Categorías de gasto</div>
+      <div id="config-cats-lista" style="margin-bottom:14px;"><p style="color:#444;font-size:12px;">Cargando...</p></div>
+
+      <div style="background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:14px;margin-bottom:22px;">
+        <div style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Nueva categoría</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input id="nueva-cat-nombre" type="text" placeholder="Nombre (ej: Educación)"
+            style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;flex:1;outline:none;" />
+          <input id="nueva-cat-icono" type="text" placeholder="📚"
+            style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;padding:9px 10px;width:52px;outline:none;text-align:center;" />
+        </div>
+        <button onclick="agregarCategoria()"
+          style="width:100%;background:#1a3a2a;border:1px solid #2a5a3a;border-radius:8px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">+ Agregar categoría</button>
+      </div>
+
+      <!-- SECCIÓN MÉTODOS DE PAGO -->
+      <div style="color:#555;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:0 2px;">Métodos de pago</div>
+      <div id="config-mets-lista" style="margin-bottom:14px;"><p style="color:#444;font-size:12px;">Cargando...</p></div>
+
+      <div style="background:#111;border:1px solid #2a2a2a;border-radius:12px;padding:14px;">
+        <div style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Nuevo método de pago</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input id="nuevo-met-nombre" type="text" placeholder="Nombre (ej: Mastercard)"
+            style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;flex:1;outline:none;" />
+          <input id="nuevo-met-icono" type="text" placeholder="💳"
+            style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;padding:9px 10px;width:52px;outline:none;text-align:center;" />
+        </div>
+        <select id="nuevo-met-tipo" onchange="toggleCorteNuevo(this.value)"
+          style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;">
+          <option value="debito">Débito</option>
+          <option value="credito">Tarjeta de crédito</option>
+          <option value="efectivo">Efectivo</option>
+        </select>
+        <div id="nuevo-met-corte-wrap" style="display:none;margin-bottom:8px;">
+          <input id="nuevo-met-corte" type="number" placeholder="Día de corte (ej: 14)" min="1" max="31"
+            style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#e8a838;font-size:13px;padding:9px 10px;width:100%;outline:none;" />
+          <p style="color:#555;font-size:11px;margin-top:4px;line-height:1.4;">El día de corte define hasta cuándo van los gastos al estado de cuenta de este mes. Ej: corte 14 → gastos del 15 al 14 del siguiente mes.</p>
+        </div>
+        <button onclick="agregarMetodo()"
+          style="width:100%;background:#1a2a3a;border:1px solid #2a4a6a;border-radius:8px;color:#7fb4d4;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">+ Agregar método</button>
       </div>
     </div>
 
@@ -1021,6 +1059,38 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
   </div>
 </div>
 
+<!-- ── MODAL EDITAR MÉTODO (Fase 5) ── -->
+<div class="modal-overlay" id="modal-edit-met" onclick="if(event.target===this) this.classList.remove('visible')">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-title">✏️ Editar método de pago</div>
+    <input type="hidden" id="edit-met-orig" />
+    <div class="modal-field">
+      <label>Nombre</label>
+      <input type="text" id="edit-met-nombre" />
+    </div>
+    <div class="modal-field">
+      <label>Icono</label>
+      <input type="text" id="edit-met-icono" style="width:60px;text-align:center;" />
+    </div>
+    <div class="modal-field">
+      <label>Tipo</label>
+      <select id="edit-met-tipo" onchange="document.getElementById('edit-met-corte-wrap').style.display=this.value==='credito'?'block':'none'">
+        <option value="debito">Débito</option>
+        <option value="credito">Tarjeta de crédito</option>
+        <option value="efectivo">Efectivo</option>
+      </select>
+    </div>
+    <div id="edit-met-corte-wrap" class="modal-field" style="display:none;">
+      <label>Día de corte</label>
+      <input type="number" id="edit-met-corte" min="1" max="31" placeholder="ej: 14" />
+    </div>
+    <div class="modal-btns">
+      <button class="modal-ok" onclick="guardarEditarMetodo()">Guardar</button>
+      <button class="modal-cancel" onclick="document.getElementById('modal-edit-met').classList.remove('visible')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL SALDAR DIFERIDO ── -->
 <div class="modal-overlay" id="modal-dif-saldar" onclick="cerrarModalSaldar(event)">
   <div class="modal-panel" onclick="event.stopPropagation()">
@@ -1042,8 +1112,11 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta","Vestimenta","Salud / Cuidado Personal"];
-const METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer BP"];
+// ── FASE 5: Arrays dinámicos — se llenan desde get_config al init ──
+let CATS = ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta","Vestimenta","Salud / Cuidado Personal"]; // fallback hasta que cargue config
+let METS = ["Diners","Visa Signature","Titanium Euphoria","DeUna!","Transfer BP"]; // fallback
+let CONFIG_CATS = []; // [{nombre, icono}]
+let CONFIG_METS = []; // [{nombre, icono, tipo, diaCobro}]
 const MESES_LABEL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 let scriptUrl = localStorage.getItem('finanzas_script_url') || '';
@@ -1109,8 +1182,12 @@ function iniciarApp() {
     const a2 = document.getElementById('comp-anio2');
     if (a2) a2.value = anioSeleccionado - 1;
   }
-  renderFavs();
-  cargarHome();
+  // ── Fase 5: cargar config dinámica antes de poblar la UI ──
+  initConfig().then(() => {
+    poblarUIConConfig();
+    renderFavs();
+    cargarHome();
+  });
   if (!sheetsUrl) {
     fetch(scriptUrl + '?cmd=info', { redirect: 'follow' })
       .then(r => r.json()).then(d => { if (d.sheets_url) { sheetsUrl = d.sheets_url; localStorage.setItem('finanzas_sheets_url', sheetsUrl); } }).catch(() => {});
@@ -1155,6 +1232,7 @@ function mostrarSubPage(nombre) {
   if (nombre === 'proyeccion') cargarProyeccion();
   if (nombre === 'diferidos') cargarDiferidos();
   if (nombre === 'configuracion') { cargarUmbral(); cargarPresupuestosConfig(); }
+  if (nombre === 'cats-mets') cargarConfigCatsMets();
 }
 
 function volverAnalisis() {
@@ -1163,6 +1241,328 @@ function volverAnalisis() {
 }
 
 // ── HOME ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// FASE 5 — CONFIG DINÁMICA
+// ═══════════════════════════════════════════════════════════
+
+// Carga categorías y métodos de pago desde el backend y actualiza
+// las variables globales CATS, METS, CONFIG_CATS, CONFIG_METS.
+// Con fallback a caché local si no hay conexión.
+async function initConfig() {
+  try {
+    const cached = leerCache('get_config');
+    if (cached) aplicarConfig(cached.data);
+    const res  = await fetch(scriptUrl + '?cmd=get_config', { redirect: 'follow' });
+    const data = await res.json();
+    guardarCache('get_config', data);
+    aplicarConfig(data);
+  } catch(e) {
+    // Sin conexión: los arrays mantienen los valores fallback del código
+    console.warn('initConfig: sin conexión, usando fallback');
+  }
+}
+
+function aplicarConfig(data) {
+  if (data.categorias && data.categorias.length) {
+    CONFIG_CATS = data.categorias;
+    CATS        = data.categorias.map(c => c.nombre);
+  }
+  if (data.metodos && data.metodos.length) {
+    CONFIG_METS = data.metodos;
+    METS        = data.metodos.map(m => m.nombre);
+  }
+}
+
+// Regenera todos los elementos de la UI que dependen de CATS/METS:
+// pills de registro, selects de modales, filtros del historial, botones del home.
+function poblarUIConConfig() {
+  _poblarPills();
+  _poblarSelectsCats();
+  _poblarSelectsMets();
+  _poblarFiltrosHistorial();
+  _poblarBotonesHome();
+  _poblarBotonesTarjeta();
+}
+
+function _poblarPills() {
+  const catWrap = document.getElementById('cat-pills');
+  const metWrap = document.getElementById('met-pills');
+  if (catWrap) {
+    catWrap.innerHTML = CATS.map(c => {
+      const cfg = CONFIG_CATS.find(x => x.nombre === c);
+      const icono = cfg ? cfg.icono : '📌';
+      return `<div class="pill" onclick="selectPill(this,'cat')" data-value="${c}">${icono} ${c}</div>`;
+    }).join('');
+  }
+  if (metWrap) {
+    metWrap.innerHTML = METS.map(m => {
+      const cfg = CONFIG_METS.find(x => x.nombre === m);
+      const icono = cfg ? cfg.icono : '💳';
+      return `<div class="pill" onclick="selectPill(this,'met')" data-value="${m}">${icono} ${m}</div>`;
+    }).join('');
+  }
+}
+
+function _poblarSelectsCats(extraFirst) {
+  const ids = ['fav-cat','dif-cat','edit-dif-cat','sc-cat','sub-cat'];
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const firstOpt = extraFirst || (id.includes('dif') ? '<option value="">Selecciona...</option>' : '');
+    sel.innerHTML = firstOpt + CATS.map(c => {
+      const cfg = CONFIG_CATS.find(x => x.nombre === c);
+      const icono = cfg ? cfg.icono : '📌';
+      return `<option value="${c}">${icono} ${c}</option>`;
+    }).join('');
+  });
+  // Selects de edición inline en historial: los generamos dinámicamente al renderizar
+}
+
+function _poblarSelectsMets(extraFirst) {
+  const ids = ['fav-met','dif-met','edit-dif-met','sub-met'];
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const firstOpt = extraFirst || (id.includes('dif') ? '<option value="">Selecciona...</option>' : '');
+    sel.innerHTML = firstOpt + METS.map(m => {
+      const cfg = CONFIG_METS.find(x => x.nombre === m);
+      const icono = cfg ? cfg.icono : '💳';
+      return `<option value="${m}">${icono} ${m}</option>`;
+    }).join('');
+  });
+}
+
+function _poblarFiltrosHistorial() {
+  const wrap = document.querySelector('.hist-filter-wrap');
+  if (!wrap) return;
+  const todos = `<button class="hist-filter-btn active" onclick="setFiltroHist('todos')">Todos</button>`;
+  const catBtns = CATS.map(c => {
+    const cfg = CONFIG_CATS.find(x => x.nombre === c);
+    const icono = cfg ? cfg.icono : '📌';
+    return `<button class="hist-filter-btn" onclick="setFiltroHist('${c}')">${icono}</button>`;
+  }).join('');
+  const metBtns = METS.map(m => {
+    const cfg = CONFIG_METS.find(x => x.nombre === m);
+    const icono = cfg ? cfg.icono : '💳';
+    return `<button class="hist-filter-btn" onclick="setFiltroHist('${m}')">${icono} ${m}</button>`;
+  }).join('');
+  wrap.innerHTML = todos + catBtns + metBtns;
+}
+
+function _poblarBotonesHome() {
+  const grid = document.getElementById('home-cats-grid');
+  if (!grid) return;
+  grid.innerHTML = CATS.map(c => {
+    const cfg = CONFIG_CATS.find(x => x.nombre === c);
+    const icono = cfg ? cfg.icono : '📌';
+    return `<button class="btn" onclick="abrirSheetFn(()=>detalleCat('${c.replace(/'/g,"\'")}'))">
+      <span class="icon">${icono}</span><span class="label">${c}</span>
+    </button>`;
+  }).join('');
+}
+
+function _poblarBotonesTarjeta() {
+  const grid = document.getElementById('home-mets-grid');
+  if (!grid) return;
+  // Solo mostrar tarjetas de crédito (tienen rango de corte) en el botón de detalle por tarjeta
+  // Los de débito/efectivo no generan un "detalle" separado con rango
+  grid.innerHTML = METS.map(m => {
+    const cfg = CONFIG_METS.find(x => x.nombre === m);
+    const icono = cfg ? cfg.icono : '💳';
+    return `<button class="btn amber" onclick="abrirSheet('detalle ${m.toLowerCase()}','${m}')">
+      <span class="icon">${icono}</span>${m}
+    </button>`;
+  }).join('');
+}
+
+// ── Función setFiltroHist actualizada para lista dinámica ──
+function setFiltroHist(filtro) {
+  filtroActivo = filtro;
+  document.querySelectorAll('.hist-filter-btn').forEach(btn => {
+    // Comparar por el texto del onclick o data-value si existiera
+    const onclick = btn.getAttribute('onclick') || '';
+    const match = onclick.includes("'" + filtro + "'") || onclick.includes('"' + filtro + '"');
+    btn.classList.toggle('active', filtro === 'todos' ? onclick.includes("'todos'") : match);
+  });
+  aplicarFiltroHist();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FASE 5 — UI DE CONFIG: Categorías y Métodos de Pago
+// ═══════════════════════════════════════════════════════════
+
+async function cargarConfigCatsMets() {
+  await initConfig();
+  _renderListaCats();
+  _renderListaMets();
+  // Poblar el select de config-pres-cat también
+  const catSel = document.getElementById('config-pres-cat');
+  if (catSel) {
+    catSel.innerHTML = '<option value="">Categoría...</option>' +
+      CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+}
+
+function _renderListaCats() {
+  const lista = document.getElementById('config-cats-lista');
+  if (!lista) return;
+  if (!CONFIG_CATS.length) {
+    lista.innerHTML = '<p style="color:#555;font-size:12px;">Sin categorías configuradas.</p>'; return;
+  }
+  lista.innerHTML = CONFIG_CATS.map(c => `
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:#e0e0e0;">${c.icono} ${c.nombre}</span>
+      <button onclick="eliminarCategoria('${c.nombre.replace(/'/g,"\'")}', this)"
+        style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:6px;color:#e24b4a;font-size:11px;padding:4px 8px;cursor:pointer;">🗑</button>
+    </div>`).join('');
+}
+
+function _renderListaMets() {
+  const lista = document.getElementById('config-mets-lista');
+  if (!lista) return;
+  if (!CONFIG_METS.length) {
+    lista.innerHTML = '<p style="color:#555;font-size:12px;">Sin métodos configurados.</p>'; return;
+  }
+  lista.innerHTML = CONFIG_METS.map(m => {
+    const tipoBadge = m.tipo === 'credito'
+      ? `<span style="color:#e8a838;font-size:10px;">crédito · corte día ${m.diaCobro}</span>`
+      : `<span style="color:#7fb4d4;font-size:10px;">${m.tipo}</span>`;
+    return `<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <div style="flex:1;">
+        <div style="font-size:13px;color:#e0e0e0;">${m.icono} ${m.nombre}</div>
+        <div style="margin-top:2px;">${tipoBadge}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="abrirEditarMetodo(${JSON.stringify(m).replace(/"/g,'&quot;')})"
+          style="background:#1a2a3a;border:1px solid #2a4a5a;border-radius:6px;color:#7fb4d4;font-size:11px;padding:4px 8px;cursor:pointer;">✏️</button>
+        <button onclick="eliminarMetodo('${m.nombre.replace(/'/g,"\'")}', this)"
+          style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:6px;color:#e24b4a;font-size:11px;padding:4px 8px;cursor:pointer;">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function agregarCategoria() {
+  const nombre = document.getElementById('nueva-cat-nombre')?.value.trim();
+  const icono  = document.getElementById('nueva-cat-icono')?.value.trim()  || '📌';
+  if (!nombre) { mostrarToast('Escribe el nombre de la categoría'); return; }
+  try {
+    const params = new URLSearchParams({ cmd: 'add_categoria', nombre, icono });
+    const res = await fetch(scriptUrl + '?' + params, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Categoría agregada');
+      document.getElementById('nueva-cat-nombre').value = '';
+      document.getElementById('nueva-cat-icono').value = '';
+      await initConfig();
+      _renderListaCats();
+      poblarUIConConfig();
+    } else {
+      mostrarToast('⚠️ ' + (data.error || 'Error'));
+    }
+  } catch(e) { mostrarToast('Error al guardar'); }
+}
+
+async function eliminarCategoria(nombre, btn) {
+  if (!confirm('¿Eliminar la categoría "' + nombre + '"? Los gastos ya registrados conservarán esta categoría.')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=del_categoria&nombre=' + encodeURIComponent(nombre), { redirect: 'follow' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Categoría eliminada');
+      await initConfig();
+      _renderListaCats();
+      poblarUIConConfig();
+    } else {
+      mostrarToast('⚠️ ' + (data.error || 'Error'));
+      btn.textContent = '🗑'; btn.disabled = false;
+    }
+  } catch(e) { mostrarToast('Error'); btn.textContent = '🗑'; btn.disabled = false; }
+}
+
+async function agregarMetodo() {
+  const nombre   = document.getElementById('nuevo-met-nombre')?.value.trim();
+  const icono    = document.getElementById('nuevo-met-icono')?.value.trim()    || '💳';
+  const tipo     = document.getElementById('nuevo-met-tipo')?.value            || 'debito';
+  const diaCobro = parseInt(document.getElementById('nuevo-met-corte')?.value) || 0;
+  if (!nombre) { mostrarToast('Escribe el nombre del método'); return; }
+  if (tipo === 'credito' && !diaCobro) { mostrarToast('Ingresa el día de corte para tarjeta de crédito'); return; }
+  try {
+    const params = new URLSearchParams({ cmd: 'add_metodo', nombre, icono, tipo, diaCobro });
+    const res = await fetch(scriptUrl + '?' + params, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Método agregado');
+      ['nuevo-met-nombre','nuevo-met-icono','nuevo-met-corte'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      await initConfig();
+      _renderListaMets();
+      poblarUIConConfig();
+    } else {
+      mostrarToast('⚠️ ' + (data.error || 'Error'));
+    }
+  } catch(e) { mostrarToast('Error al guardar'); }
+}
+
+function abrirEditarMetodo(m) {
+  document.getElementById('edit-met-orig').value   = m.nombre;
+  document.getElementById('edit-met-nombre').value = m.nombre;
+  document.getElementById('edit-met-icono').value  = m.icono;
+  document.getElementById('edit-met-tipo').value   = m.tipo;
+  document.getElementById('edit-met-corte').value  = m.diaCobro || '';
+  document.getElementById('edit-met-corte-wrap').style.display = m.tipo === 'credito' ? 'block' : 'none';
+  document.getElementById('modal-edit-met').classList.add('visible');
+}
+
+async function guardarEditarMetodo() {
+  const nombre_original = document.getElementById('edit-met-orig').value;
+  const nombre   = document.getElementById('edit-met-nombre').value.trim();
+  const icono    = document.getElementById('edit-met-icono').value.trim()    || '💳';
+  const tipo     = document.getElementById('edit-met-tipo').value            || 'debito';
+  const diaCobro = parseInt(document.getElementById('edit-met-corte').value) || 0;
+  if (!nombre) { mostrarToast('El nombre no puede estar vacío'); return; }
+  if (tipo === 'credito' && !diaCobro) { mostrarToast('Ingresa el día de corte'); return; }
+  try {
+    const params = new URLSearchParams({ cmd: 'edit_metodo', nombre_original, nombre, icono, tipo, diaCobro });
+    const res = await fetch(scriptUrl + '?' + params, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Método actualizado');
+      document.getElementById('modal-edit-met').classList.remove('visible');
+      await initConfig();
+      _renderListaMets();
+      poblarUIConConfig();
+    } else {
+      mostrarToast('⚠️ ' + (data.error || 'Error'));
+    }
+  } catch(e) { mostrarToast('Error al guardar'); }
+}
+
+async function eliminarMetodo(nombre, btn) {
+  if (!confirm('¿Eliminar el método "' + nombre + '"? Los gastos ya registrados conservarán este método.')) return;
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const res = await fetch(scriptUrl + '?cmd=del_metodo&nombre=' + encodeURIComponent(nombre), { redirect: 'follow' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Método eliminado');
+      await initConfig();
+      _renderListaMets();
+      poblarUIConConfig();
+    } else {
+      mostrarToast('⚠️ ' + (data.error || 'Error'));
+      btn.textContent = '🗑'; btn.disabled = false;
+    }
+  } catch(e) { mostrarToast('Error'); btn.textContent = '🗑'; btn.disabled = false; }
+}
+
+function toggleCorteNuevo(tipo) {
+  const wrap = document.getElementById('nuevo-met-corte-wrap');
+  if (wrap) wrap.style.display = tipo === 'credito' ? 'block' : 'none';
+}
+
 async function cargarHome() {
   // Cargar balance (desde caché primero)
   const cachedChart = leerCache('chart');
@@ -1521,7 +1921,7 @@ async function renderSuscripcionesUI(bodyEl) {
     if (cached?.data) items = cached.data;
   }
 
-  const METS_SUB = ['Diners','Visa Signature','Titanium Euphoria','DeUna!','Transfer BP'];
+  const METS_SUB = METS; // Fase 5: usa el array dinámico
   const html = `
     <div style="margin-bottom:14px;">
       <button onclick="abrirFormSub()" style="background:#1a3a2a;border:1px solid #2a5a3a;border-radius:10px;color:#7fd4a0;font-size:13px;font-weight:600;padding:10px;width:100%;cursor:pointer;">+ Nueva suscripción</button>
@@ -1960,41 +2360,70 @@ async function verImpactoSiguiente() {
   const bodyEl  = document.getElementById('sheet-body');
   titleEl.textContent = '📤 Impacto mes siguiente';
   try {
-    const url = urlConMes('impacto_siguiente');
-    const res = await fetch(url, { redirect: 'follow' });
+    const res  = await fetch(urlConMes('impacto_siguiente'), { redirect: 'follow' });
     const data = await res.json();
-    if (!data.items || !data.items.length) {
-      bodyEl.innerHTML = '<p style="color:#7fd4a0;font-size:13px;">✅ Sin gastos de TC que impacten al mes siguiente.</p>';
+
+    const hayTC   = data.gastosTC   && data.gastosTC.length   > 0;
+    const hayDif  = data.diferidos  && data.diferidos.length  > 0;
+    const haySubs = data.suscripciones && data.suscripciones.length > 0;
+
+    if (!hayTC && !hayDif && !haySubs) {
+      bodyEl.innerHTML = '<p style="color:#7fd4a0;font-size:13px;">✅ Sin compromisos conocidos para el mes siguiente.</p>';
       return;
     }
+
     const mesesDisplay = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-    const mesActIdx   = (mesSeleccionado - 1 + 12) % 12; // mesSeleccionado es 1-based
-    const mesSigIdx   = mesSeleccionado % 12;             // next month (0-indexed)
-    let html = `<div style="font-size:12px;color:#888;margin-bottom:12px;">Gastos de tarjeta de crédito hechos en <strong style="color:#e0e0e0;">${mesesDisplay[mesActIdx]}</strong> que se cargarán en el estado de cuenta de <strong style="color:#d4a0f0;">${data.mesImpacto}</strong>:</div>`;
-    const porMetodo = {};
-    data.items.forEach(item => {
-      if (!porMetodo[item.metodo]) porMetodo[item.metodo] = [];
-      porMetodo[item.metodo].push(item);
-    });
-    Object.entries(porMetodo).forEach(([metodo, items]) => {
-      const subtotal = items.reduce((s,x) => s + x.monto, 0);
-      html += `<div style="margin-bottom:12px;">
-        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💳 ${metodo} — subtotal $${subtotal.toFixed(2)}</div>
-        ${items.map(it => `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:13px;">
-          <div>
-            <span style="color:#888;font-size:11px;margin-right:6px;">${it.fecha}</span>
-            <span style="color:#d0d0d0;">${it.descripcion || it.categoria}</span>
-            <span style="color:#555;font-size:11px;margin-left:6px;">${it.categoria}</span>
+    const mesActNombre = mesesDisplay[(mesSeleccionado - 1 + 12) % 12];
+
+    function seccion(titulo, subtitulo, items, total, colorAccent) {
+      if (!items || !items.length) return '';
+      return `
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+            <div>
+              <span style="font-size:12px;font-weight:700;color:${colorAccent};">${titulo}</span>
+              ${subtitulo ? `<span style="font-size:11px;color:#555;margin-left:6px;">${subtitulo}</span>` : ''}
+            </div>
+            <span style="font-size:13px;font-weight:700;color:${colorAccent};">$${total.toFixed(2)}</span>
           </div>
-          <span style="color:#e07070;font-weight:600;">$${it.monto.toFixed(2)}</span>
-        </div>`).join('')}
-      </div>`;
-    });
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #2a2a2a;margin-top:4px;">
-      <span style="font-size:12px;color:#888;font-weight:600;">Total que impacta a ${data.mesImpacto}</span>
-      <span style="font-size:16px;font-weight:700;color:#e07070;">$${data.total.toFixed(2)}</span>
+          ${items.map(it => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px;">
+              <div style="flex:1;min-width:0;">
+                <div style="color:#d0d0d0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.descripcion || it.nombre}</div>
+                <div style="font-size:11px;color:#555;margin-top:1px;">${it.metodo || '—'}${it.diaCobro ? ' · día ' + it.diaCobro : ''}${it.fecha ? ' · ' + it.fecha : ''}</div>
+              </div>
+              <span style="color:#e07070;font-weight:600;margin-left:10px;white-space:nowrap;">$${it.monto.toFixed(2)}</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    const intro = `<div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.5;">
+      Compromisos de <strong style="color:#e0e0e0;">${mesActNombre}</strong> que se cobrarán en
+      <strong style="color:#d4a0f0;">${data.mesImpacto}</strong>:
     </div>`;
-    bodyEl.innerHTML = html;
+
+    // Agrupar gastos TC por método de pago para mejor lectura
+    const porMetodo = {};
+    (data.gastosTC || []).forEach(it => {
+      if (!porMetodo[it.metodo]) porMetodo[it.metodo] = [];
+      porMetodo[it.metodo].push(it);
+    });
+    const tcSeccion = Object.entries(porMetodo).map(([metodo, items]) => {
+      const sub = r(items.reduce((s,x) => s+x.monto, 0));
+      return seccion('💳 ' + metodo, 'post-corte', items, sub, '#e8a838');
+    }).join('');
+
+    const difSeccion  = seccion('🔄 Diferidos', 'próxima cuota de cada uno', data.diferidos || [], data.totalDif || 0, '#7fb4d4');
+    const subsSeccion = seccion('📋 Suscripciones', 'cobro mensual', data.suscripciones || [], data.totalSubs || 0, '#a0d4b8');
+
+    const totalBar = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #2a2a2a;margin-top:4px;">
+        <span style="font-size:13px;color:#888;font-weight:600;">Total comprometido en ${data.mesImpacto}</span>
+        <span style="font-size:18px;font-weight:700;color:#e07070;">$${(data.total||0).toFixed(2)}</span>
+      </div>`;
+
+    bodyEl.innerHTML = intro + tcSeccion + difSeccion + subsSeccion + totalBar;
+
   } catch(e) {
     bodyEl.innerHTML = '<span class="error">Error al cargar: ' + e.message + '</span>';
   }
