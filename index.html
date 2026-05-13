@@ -131,7 +131,7 @@ body {
 
 /* ── SUBS BUBBLES ── */
 .subs-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
-.sub-bubble { background: #141e1a; border: 1px solid #2a3a30; border-radius: 20px; padding: 7px 14px; font-size: 13px; color: #a0d4b8; white-space: nowrap; }
+.sub-bubble { background: #141e1a; border: 1px solid #2a3a30; border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #a0d4b8; white-space: nowrap; }
 
 /* ── BUDGET BARS ── */
 .budget-bar-wrap { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
@@ -474,6 +474,13 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <button class="btn amber" onclick="abrirSheet('detalle transfer','Transfer BP')"><span class="icon">🏦</span>Transfer BP</button>
       </div>
     </div>
+
+    <div class="section">
+      <div class="section-title">Próximo mes</div>
+      <div class="btn-grid">
+        <button class="btn" style="border-color:#3a2a5a;background:#1a1030;" onclick="abrirSheetFn(verImpactoSiguiente)"><span class="icon">📤</span><span class="label">Impacto mes siguiente</span></button>
+      </div>
+    </div>
   </div>
 
   <!-- ── REGISTRAR ── -->
@@ -748,7 +755,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         <div style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Nuevo / editar límite</div>
         <select id="config-pres-cat" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:13px;padding:9px 10px;width:100%;outline:none;margin-bottom:8px;">
           <option value="">Categoría...</option>
-          ${(()=> ["Transporte","Comida","Trámites","Estado cuenta","Tienda","Ocio","Family","Arriendo","Necesidad","Herramienta"].map(c=>`<option value="${c}">${c}</option>`).join(''))()}
         </select>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
           <input id="config-pres-limite" type="number" placeholder="Límite $" min="0" step="5" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#7fd4a0;font-size:15px;font-weight:700;padding:9px 10px;flex:1;outline:none;" />
@@ -1452,7 +1458,7 @@ async function detalleCat(cat) {
   const bodyEl = document.getElementById('sheet-body');
   titleEl.textContent = cat;
   try {
-    const url = scriptUrl + '?cmd=detalle_cat&cat=' + encodeURIComponent(cat) + '&mes=' + mesSeleccionado;
+    const url = scriptUrl + '?cmd=detalle_cat&cat=' + encodeURIComponent(cat) + '&mes=' + mesSeleccionado + '&anio=' + anioSeleccionado;
     const res = await fetch(url, { redirect: 'follow' });
     const data = await res.json();
     if (!data.bloques) { bodyEl.textContent = 'Sin datos.'; return; }
@@ -1707,12 +1713,15 @@ function aplicarFiltroHist() {
   const labelEl = document.getElementById('hist-filter-label');
   const sumEl = document.getElementById('hist-filter-sum');
   let visibles = 0, suma = 0;
-  document.querySelectorAll('.historial-item').forEach((el, i) => {
-    const r = historialData[historialData.length - 1 - i];
-    if (!r) return;
-    const match = filtroActivo === 'todos' || r.categoria === filtroActivo || r.metodo === filtroActivo;
+  document.querySelectorAll('.historial-item').forEach(el => {
+    const cat    = el.dataset.categoria || '';
+    const metodo = el.dataset.metodo   || '';
+    const match  = filtroActivo === 'todos' || cat === filtroActivo || metodo === filtroActivo;
     el.style.display = match ? 'block' : 'none';
-    if (match) { visibles++; suma += r.monto; }
+    if (match) {
+      visibles++;
+      suma += parseFloat(el.dataset.monto || 0);
+    }
   });
   if (filtroActivo !== 'todos') {
     totalEl.classList.add('visible');
@@ -1731,7 +1740,7 @@ async function cargarHistorial() {
     lista.innerHTML = badge + data.map(r => {
       const montoClass = r.tipo === 'ingreso' ? 'ingreso' : 'gasto';
       const prefix = r.tipo === 'ingreso' ? '+' : '-';
-      return `<div class="historial-item" id="item-${r.fila}">
+      return `<div class="historial-item" id="item-${r.fila}" data-categoria="${(r.categoria||'').replace(/"/g,'&quot;')}" data-metodo="${(r.metodo||'').replace(/"/g,'&quot;')}" data-monto="${r.monto}">
         <div class="historial-vista">
           <div class="historial-info">
             <div class="historial-fecha">${r.fecha}</div>
@@ -1945,18 +1954,74 @@ async function ejecutarComparar() {
   } catch(e) { resultado.innerHTML = '<p class="error">Sin conexión o error: ' + e.message + '</p>'; }
 }
 
-// ── PROYECCIÓN ────────────────────────────────────────────
+// ── IMPACTO MES SIGUIENTE ─────────────────────────────────
+async function verImpactoSiguiente() {
+  const titleEl = document.getElementById('sheet-title');
+  const bodyEl  = document.getElementById('sheet-body');
+  titleEl.textContent = '📤 Impacto mes siguiente';
+  try {
+    const url = urlConMes('impacto_siguiente');
+    const res = await fetch(url, { redirect: 'follow' });
+    const data = await res.json();
+    if (!data.items || !data.items.length) {
+      bodyEl.innerHTML = '<p style="color:#7fd4a0;font-size:13px;">✅ Sin gastos de TC que impacten al mes siguiente.</p>';
+      return;
+    }
+    const mesesDisplay = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const mesActIdx   = (mesSeleccionado - 1 + 12) % 12; // mesSeleccionado es 1-based
+    const mesSigIdx   = mesSeleccionado % 12;             // next month (0-indexed)
+    let html = `<div style="font-size:12px;color:#888;margin-bottom:12px;">Gastos de tarjeta de crédito hechos en <strong style="color:#e0e0e0;">${mesesDisplay[mesActIdx]}</strong> que se cargarán en el estado de cuenta de <strong style="color:#d4a0f0;">${data.mesImpacto}</strong>:</div>`;
+    const porMetodo = {};
+    data.items.forEach(item => {
+      if (!porMetodo[item.metodo]) porMetodo[item.metodo] = [];
+      porMetodo[item.metodo].push(item);
+    });
+    Object.entries(porMetodo).forEach(([metodo, items]) => {
+      const subtotal = items.reduce((s,x) => s + x.monto, 0);
+      html += `<div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💳 ${metodo} — subtotal $${subtotal.toFixed(2)}</div>
+        ${items.map(it => `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:13px;">
+          <div>
+            <span style="color:#888;font-size:11px;margin-right:6px;">${it.fecha}</span>
+            <span style="color:#d0d0d0;">${it.descripcion || it.categoria}</span>
+            <span style="color:#555;font-size:11px;margin-left:6px;">${it.categoria}</span>
+          </div>
+          <span style="color:#e07070;font-weight:600;">$${it.monto.toFixed(2)}</span>
+        </div>`).join('')}
+      </div>`;
+    });
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #2a2a2a;margin-top:4px;">
+      <span style="font-size:12px;color:#888;font-weight:600;">Total que impacta a ${data.mesImpacto}</span>
+      <span style="font-size:16px;font-weight:700;color:#e07070;">$${data.total.toFixed(2)}</span>
+    </div>`;
+    bodyEl.innerHTML = html;
+  } catch(e) {
+    bodyEl.innerHTML = '<span class="error">Error al cargar: ' + e.message + '</span>';
+  }
+}
+
+
 async function cargarProyeccion() {
   document.getElementById('proy-loading').style.display = 'block';
   document.getElementById('proy-contenido').style.display = 'none';
   let sueldo = 0, gastoActual = 0, cats = [];
   const c = leerCache('chart');
-  if (c?.data?.gastos) { sueldo = c.data.sueldo||0; cats = c.data.gastos; gastoActual = cats.reduce((a,b)=>a+b.valor,0); }
+  if (c?.data?.gastos) {
+    sueldo = c.data.sueldo||0;
+    cats = c.data.gastos;
+    // Usar egresosTotal (incluye Estado cuenta + Sin clasificar) si está disponible
+    gastoActual = c.data.egresosTotal != null ? c.data.egresosTotal : cats.reduce((a,b)=>a+b.valor,0);
+  }
   try {
     const res = await fetch(urlConMes('chart'), { redirect: 'follow' });
     const data = await res.json();
     guardarCache('chart', data);
-    if (data.gastos) { sueldo = data.sueldo||0; cats = data.gastos; gastoActual = cats.reduce((a,b)=>a+b.valor,0); }
+    if (data.gastos) {
+      sueldo = data.sueldo||0;
+      cats = data.gastos;
+      // Usar egresosTotal del backend para coincidir exactamente con B3
+      gastoActual = data.egresosTotal != null ? data.egresosTotal : cats.reduce((a,b)=>a+b.valor,0);
+    }
   } catch(e) {}
   if (!sueldo && !gastoActual) { document.getElementById('proy-loading').innerHTML = '<p style="color:#666;font-size:13px;">Sin datos.</p>'; return; }
   const hoy = new Date();
@@ -2561,7 +2626,7 @@ function renderSinClasificar(bodyEl) {
   bodyEl.innerHTML = `
     <p style="color:#888;font-size:12px;margin-bottom:12px;">${sinClasificarData.length} gasto${sinClasificarData.length!==1?'s':''} sin clasificar este mes:</p>
     ${sinClasificarData.map((r, i) => `
-      <div id="sc-${r.fila}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+      <div id="sc-${r.fila}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:8px 10px;margin-bottom:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div>
             <div style="font-size:13px;font-weight:600;color:#e0e0e0;">${r.descripcion}</div>
@@ -2630,23 +2695,54 @@ async function verificarSinClasificar() {
 async function cargarPresupuestosConfig() {
   const lista = document.getElementById('config-pres-lista');
   if (!lista) return;
+
+  // Poblar el select con TODAS las categorías disponibles
+  const catSel = document.getElementById('config-pres-cat');
+  if (catSel) {
+    catSel.innerHTML = '<option value="">Categoría...</option>' +
+      CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
   try {
     const res = await fetch(urlConMes('presupuestos'), { redirect: 'follow' });
     const data = await res.json();
-    const items = Array.isArray(data) ? data : [];
-    if (!items.length) { lista.innerHTML = '<p style="color:#555;font-size:12px;">Sin presupuestos configurados.</p>'; return; }
-    lista.innerHTML = items.map(p => `
-      <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <div style="flex:1;">
-          <span style="font-size:13px;color:#e0e0e0;">${p.icono} ${p.categoria}</span>
-          <span style="font-size:11px;color:#555;margin-left:6px;">${p.pct}% usado</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:14px;font-weight:700;color:#7fd4a0;">$${p.limite}</span>
-          <button onclick="editarPresupuestoConfig('${p.categoria}','${p.icono}',${p.limite})" style="background:#1a2a3a;border:1px solid #2a4a5a;border-radius:6px;color:#7fb4d4;font-size:11px;padding:4px 8px;cursor:pointer;">✏️</button>
-          <button onclick="eliminarPresupuestoConfig('${p.categoria}', this)" style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:6px;color:#e24b4a;font-size:11px;padding:4px 8px;cursor:pointer;">🗑</button>
-        </div>
-      </div>`).join('');
+    // data puede ser array o error
+    const definidos = Array.isArray(data) ? data : [];
+
+    // Construir mapa de categorías ya definidas
+    const mapaDefinidos = {};
+    definidos.forEach(p => { mapaDefinidos[p.categoria] = p; });
+
+    // Mostrar TODAS las categorías (definidas + sin definir)
+    lista.innerHTML = CATS.map(cat => {
+      const p = mapaDefinidos[cat];
+      if (p) {
+        // Categoría con límite definido
+        const pctColor = p.pct >= 100 ? '#e24b4a' : p.pct >= 80 ? '#e8a838' : '#7fd4a0';
+        return `
+          <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="flex:1;">
+              <span style="font-size:13px;color:#e0e0e0;">${p.icono} ${p.categoria}</span>
+              <span style="font-size:11px;color:${pctColor};margin-left:6px;">${p.pct}% · $${p.gastado}/$${p.limite}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="editarPresupuestoConfig('${p.categoria}','${p.icono}',${p.limite})" style="background:#1a2a3a;border:1px solid #2a4a5a;border-radius:6px;color:#7fb4d4;font-size:11px;padding:4px 8px;cursor:pointer;">✏️</button>
+              <button onclick="eliminarPresupuestoConfig('${p.categoria}', this)" style="background:#2a1a1a;border:1px solid #5a2a2a;border-radius:6px;color:#e24b4a;font-size:11px;padding:4px 8px;cursor:pointer;">🗑</button>
+            </div>
+          </div>`;
+      } else {
+        // Categoría sin límite — mostrar con estado "No definido"
+        return `
+          <div style="background:#111;border:1px dashed #2a2a2a;border-radius:10px;padding:8px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;opacity:0.6;">
+            <div style="flex:1;">
+              <span style="font-size:13px;color:#888;">📌 ${cat}</span>
+              <span style="font-size:11px;color:#444;margin-left:6px;">No definido</span>
+            </div>
+            <button onclick="editarPresupuestoConfig('${cat}','📌','')" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;color:#555;font-size:11px;padding:4px 8px;cursor:pointer;">+ Definir</button>
+          </div>`;
+      }
+    }).join('');
+
   } catch(e) { if (lista) lista.innerHTML = '<p style="color:#444;font-size:12px;">Sin conexión.</p>'; }
 }
 
